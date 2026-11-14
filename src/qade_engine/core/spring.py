@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Critically damped springs: smooth follow motion with no overshoot."""
 
+from math import exp
+
 
 def spring_step(
     value: float, velocity: float, target: float, frequency: float, dt: float
@@ -16,12 +18,16 @@ def spring_step(
         target: Where the value is heading.
         frequency: Stiffness in rad/s. It settles in about ``5 / frequency``
             seconds.
-        dt: Step length in seconds. Stable while ``frequency * dt < 1``.
+        dt: Step length in seconds. The step is exact, so one long step
+            lands where many short ones would.
 
     Returns:
         The new value and velocity.
     """
-    velocity += (
-        frequency * frequency * (target - value) - 2 * frequency * velocity
-    ) * dt
-    return value + velocity * dt, velocity
+    offset = value - target
+    drift = velocity + frequency * offset
+    decay = exp(-frequency * dt)
+    return (
+        target + (offset + drift * dt) * decay,
+        (drift - frequency * (offset + drift * dt)) * decay,
+    )
