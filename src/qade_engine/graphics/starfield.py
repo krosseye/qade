@@ -74,6 +74,10 @@ class StarField:
     def scroll(self, velocity_x, velocity_y, dt):
         """Scrolls every star by a world velocity times its own parallax speed.
 
+        Every argument must be finite. A NaN or infinite one turns every star's
+        position NaN, and wrapping can't bring them back, so the stars vanish
+        until the field is rebuilt (``ArcadeGame`` rebuilds it each run).
+
         Args:
             velocity_x: Horizontal velocity in px/s.
             velocity_y: Vertical velocity in px/s.

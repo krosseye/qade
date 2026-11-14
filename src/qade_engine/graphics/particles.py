@@ -208,6 +208,8 @@ class ParticleSystem:
             heading: Direction in degrees, 0 up and clockwise, that the spread
                 centres on.
             scale: Multiplier on each layer's count, floored at ``min_count``.
+                Must be finite: NaN or infinity raises. ``PlayField.area_scale``
+                is always finite for a field with a non-zero size.
             anchor: Any object naming a point the game places when drawing.
                 Pass the same one for the whole burst.
         """
@@ -243,7 +245,7 @@ class ParticleSystem:
         alive: list[Particle] = []
         for p in self.items:
             if p.effect.drag:
-                damping = 1.0 - p.effect.drag * dt
+                damping = max(0.0, 1.0 - p.effect.drag * dt)
                 p.vx *= damping
                 p.vy *= damping
             p.x += p.vx * dt
@@ -281,7 +283,7 @@ class ParticleSystem:
                     if spot is not None:
                         painter.translate(spot[0], spot[1])
                         painter.scale(spot[2], spot[2])
-            if not visible:
+            if not visible or p.life <= 0:
                 continue
 
             effect = p.effect

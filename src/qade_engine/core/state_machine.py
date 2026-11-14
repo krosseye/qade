@@ -140,7 +140,8 @@ class StateMachine(Generic[S, E]):
         """Moves time forward: plays any transition, else checks for a timeout.
 
         Args:
-            dt: Seconds to advance.
+            dt: Seconds to advance. Must be finite and non-negative: a NaN
+                leaves a transition stuck halfway forever.
         """
         if self.transition is not None:
             transition = self.transition

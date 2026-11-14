@@ -90,4 +90,4 @@ class PadAxis:
     direction: Literal[1, -1] = 1
 
     def strength(self, devices: DeviceState) -> float:
-        return max(0.0, devices.gamepad.axis(self.axis) * self.direction)
+        return min(1.0, max(0.0, devices.gamepad.axis(self.axis) * self.direction))
