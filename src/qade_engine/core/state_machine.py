@@ -5,10 +5,6 @@ from collections import Counter
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Generic, TypeVar
-
-S = TypeVar("S", bound=Enum)
-E = TypeVar("E", bound=Enum)
 
 
 class TransitionStyle(Enum):
@@ -22,7 +18,7 @@ class TransitionStyle(Enum):
 
 
 @dataclass(frozen=True)
-class Edge(Generic[S]):
+class Edge[S: Enum]:
     """Where an event leads from a given state.
 
     Attributes:
@@ -39,7 +35,7 @@ class Edge(Generic[S]):
 
 
 @dataclass
-class Transition(Generic[S]):
+class Transition[S: Enum]:
     """A timed change in progress. The state switches halfway through.
 
     Attributes:
@@ -67,7 +63,7 @@ class Transition(Generic[S]):
         return self.progress >= 0.5
 
 
-class StateMachine(Generic[S, E]):
+class StateMachine[S: Enum, E: Enum]:
     """Tracks the current state, the time spent in it, and any transition.
 
     The legal moves are a table of ``(state, event) -> Edge``. Time only moves
