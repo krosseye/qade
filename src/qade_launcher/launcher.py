@@ -267,9 +267,9 @@ class Launcher:
         theme = current_theme()
         painter, view = frame.painter, frame.view
         unit = self.units[self.selected]
-        info = unit.game.info if unit.game else None
-        if info is None:
+        if unit.game is None:
             return
+        info = unit.game.info
 
         width, height = 560.0, 112.0
         x, y = (view.width - width) / 2, view.height - height - 16

@@ -55,6 +55,7 @@ def _fitted_size(
         if painter.fontMetrics().horizontalAdvance(text) <= max_width:
             break
         size -= 2
+    _set_font(painter, size, spacing)
     return size
 
 
