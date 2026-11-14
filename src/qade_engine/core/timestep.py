@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Fixed-rate simulation steps from an irregular real-time clock."""
 
+import math
+
 
 class FixedTimestep:
     """Turns irregular real elapsed time into a whole number of fixed steps.
@@ -25,11 +27,15 @@ class FixedTimestep:
         """Adds real elapsed time.
 
         Args:
-            elapsed: Real seconds since the last call.
+            elapsed: Real seconds since the last call. Zero, negative and
+                non-finite values add nothing, so one bad clock reading
+                can't poison every later step.
 
         Returns:
             How many steps are now due.
         """
+        if not 0.0 < elapsed < math.inf:
+            return 0
         self._accumulated += elapsed
         steps = int(self._accumulated // self.step)
         self._accumulated %= self.step

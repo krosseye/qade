@@ -219,6 +219,8 @@ class Host(QObject):
         if suspended == self._suspended:
             return
         self._suspended = suspended
+        if not suspended:
+            self._last_tick_time = perf_counter()
         if self.app is not None:
             if suspended:
                 self._call("suspend", self.app.suspend)
