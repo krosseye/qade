@@ -17,7 +17,9 @@ from .palette import (
 )
 from .particles import Burst, ParticleEffect, ParticleSystem, Shape
 from .primitives import draw_centered, draw_corner_brackets, hairline
-from .theme import current_theme, make_font
+from .starfield import StarField
+from .theme import Theme, current_theme, make_font
+from .viewport import Viewport
 
 __all__ = [
     "BLACK",
@@ -37,6 +39,9 @@ __all__ = [
     "Point3",
     "Pose",
     "Shape",
+    "StarField",
+    "Theme",
+    "Viewport",
     "blend",
     "current_theme",
     "draw_centered",

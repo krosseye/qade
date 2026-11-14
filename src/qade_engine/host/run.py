@@ -89,6 +89,14 @@ def parse_settings(title: str) -> HostSettings:
 def run(definition: GameDefinition, home: GameDefinition | None = None) -> None:
     """Runs a game in its own window until it quits, then exits the process.
 
+    The player's options come from the command line:
+
+    - ``--fullscreen``: start fullscreen. Always on for a Steam Deck.
+    - ``--no-music``: no music.
+    - ``--no-sfx``: no sound effects.
+    - ``--no-tts``: no spoken intro; it is shown on timers instead.
+    - ``--software-renderer``: draw without OpenGL.
+
     Args:
         definition: The game to start.
         home: An app to return to when the game quits, such as a launcher.

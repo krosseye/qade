@@ -47,12 +47,14 @@ class _Voice:
 
 
 class SoundBus(QObject):
-    """Plays registered sounds, each baked once into a WAV per voice.
+    """Plays registered sounds by name.
 
-    At most ``max_voices`` sounds are audible at once. When full, the
-    lowest-priority (then oldest) sound is cut if the new one is at least as
-    important; otherwise the new one is dropped. Gaps and voice ages use a
-    real-time clock and never feed back into the simulation.
+    ``ArcadeGame`` creates one and hands it to ``register_sounds``; other
+    apps get one from ``open_bus``.
+
+    Only a few sounds are audible at once. When full, the lowest-priority
+    (then oldest) sound is cut if the new one is at least as important;
+    otherwise the new one is dropped. Sound never affects the simulation.
     """
 
     def __init__(

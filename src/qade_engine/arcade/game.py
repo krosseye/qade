@@ -133,8 +133,12 @@ class ArcadeGame:
         services: What the host provides.
         actions: Held input, for steps to read.
         field: The play area, in canvas units.
-        particles: Visual-only particles, stepped with the simulation.
-        starfield: The background stars, rebuilt for each run.
+        particles: Visual-only particles. Only ``step_aftermath`` updates
+            them by default: call ``particles.update(dt)`` in ``step_playing``
+            and ``particles.draw(painter)`` in ``draw_world``.
+        starfield: The background stars, rebuilt for each run. They drift
+            on their own outside play; during play, call ``starfield.scroll``
+            in ``step_playing`` to move them.
         sounds: The sound bus, or None when sound effects are off or headless.
         score: This run's score.
         elapsed: Seconds of play this run.

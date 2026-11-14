@@ -92,7 +92,8 @@ class Frame:
     Attributes:
         painter: The painter to draw with.
         view: The window, in the painter's scaled units.
-        now: Wall-clock seconds, for blinking and typing effects.
+        now: Real-time seconds from an arbitrary start, not simulation time,
+            for blinking and typing effects.
         alpha: How far into the next fixed step this frame is, from 0 to 1.
         perf: Performance measurements, for the HUD.
     """

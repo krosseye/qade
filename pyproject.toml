@@ -25,6 +25,7 @@ module-name = ["qade_engine"]
 
 [dependency-groups]
 dev = ["mypy>=2.4.1", "ruff>=0.17.4", "prek>=0.5.10"]
+docs = ["mkdocstrings[python]>=1.0.8", "zensical>=0.1.1"]
 
 
 [tool.mypy]

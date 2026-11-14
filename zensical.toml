@@ -1,0 +1,123 @@
+[project]
+site_name = "qade"
+site_author = "krosseye"
+site_url = "https://krosseye.github.io/qade/"
+site_description = "Retro vector arcade game engine built on PySide6."
+repo_url = "https://github.com/krosseye/qade"
+repo_name = "krosseye/qade"
+edit_uri = "edit/main/docs/"
+nav = [
+  { "Home" = "index.md" },
+  { "Getting started" = "getting-started.md" },
+  { "API reference" = [
+    "reference/index.md",
+    { "Arcade" = [
+      "reference/arcade/index.md",
+      "reference/arcade/arcade_game.md",
+      "reference/arcade/phases.md",
+    ] },
+    { "Host" = [
+      "reference/host/index.md",
+      "reference/host/running.md",
+      "reference/host/app.md",
+    ] },
+    { "Input" = [
+      "reference/input/index.md",
+      "reference/input/action_state.md",
+      "reference/input/actions.md",
+      "reference/input/input_map.md",
+      "reference/input/gamepad.md",
+    ] },
+    { "Audio" = [
+      "reference/audio/index.md",
+      "reference/audio/sound_bus.md",
+      "reference/audio/presets.md",
+    ] },
+    { "Graphics" = [
+      "reference/graphics/index.md",
+      "reference/graphics/palette.md",
+      "reference/graphics/drawing.md",
+      "reference/graphics/particles.md",
+      "reference/graphics/starfield.md",
+      "reference/graphics/camera.md",
+    ] },
+    { "UI" = [
+      "reference/ui/index.md",
+      "reference/ui/hud.md",
+    ] },
+    { "Core" = [
+      "reference/core/index.md",
+      "reference/core/field.md",
+      "reference/core/math.md",
+    ] },
+    { "Utilities" = [
+      "reference/utilities/persistence.md",
+      "reference/utilities/resources.md",
+      "reference/utilities/perf.md",
+    ] },
+  ] },
+]
+
+[project.theme]
+language = "en"
+features = [
+  "content.action.edit",
+  "content.code.copy",
+  "navigation.indexes",
+  "navigation.instant",
+  "navigation.path",
+  "navigation.sections",
+  "navigation.tabs",
+  "navigation.top",
+  "search.highlight",
+  "search.suggest",
+  "toc.follow",
+]
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "cyan"
+accent = "cyan"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "cyan"
+accent = "cyan"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
+[project.markdown_extensions]
+admonition = {}
+pymdownx.highlight = {}
+pymdownx.snippets = {}
+pymdownx.superfences.custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["src"]
+inventories = [
+  "https://docs.python.org/3/objects.inv",
+  "https://doc.qt.io/qtforpython-6/objects.inv",
+]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_style = "google"
+docstring_options.warn_missing_types = false
+filters = ["!^_"]
+show_if_no_docstring = false
+show_source = false
+show_root_heading = true
+show_root_full_path = false
+show_symbol_type_heading = true
+show_symbol_type_toc = true
+summary = true
+members_order = "source"
+merge_init_into_class = true
+separate_signature = true
+show_signature_annotations = true
+signature_crossrefs = true
