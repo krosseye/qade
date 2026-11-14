@@ -2,7 +2,8 @@
 name = "qade"
 version = "0.1.0"
 description = "Retro vector arcade game engine built on PySide6."
-license = { file = "LICENSE" }
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 readme = "README.md"
 authors = [
   { name = "KROSSEYE", email = "30990184+KROSSEYE@users.noreply.github.com" },
@@ -24,7 +25,13 @@ build-backend = "uv_build"
 module-name = ["qade_engine"]
 
 [dependency-groups]
-dev = ["mypy>=2.4.1", "ruff>=0.17.4", "prek>=0.5.10"]
+dev = [
+  "mypy>=2.4.1",
+  "ruff>=0.17.4",
+  "prek>=0.5.10",
+  "pytest>=9.2.0",
+  "python-semantic-release>=10.7.0",
+]
 docs = ["mkdocstrings[python]>=1.0.8", "zensical>=0.1.1"]
 
 
@@ -34,3 +41,19 @@ files = ["src"]
 [[tool.mypy.overrides]]
 module = "sdl2.*"
 ignore_missing_imports = true
+
+[tool.ruff.format]
+exclude = ["docs/getting-started.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+allow_zero_version = true
+major_on_zero = false
+build_command = "uv lock --upgrade-package qade"
+assets = ["uv.lock"]
+
+[tool.semantic_release.branches.main]
+match = "main"
