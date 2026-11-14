@@ -57,11 +57,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      # Re-check after a PySide6 upgrade if an import fails with a missing .so.
       - name: Install Qt's system libraries
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            libegl1 libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3
+            libegl1 libgl1 libx11-6 libxext6 libxrandr2 libxkbcommon0 \
+            libfontconfig1 libfreetype6 libdbus-1-3 libglib2.0-0t64 \
+            libpulse0 libspeechd2 libdrm2 libbrotli1 libbz2-1.0 \
+            libgssapi-krb5-2 libzstd1
 
       - name: Install uv and Python ${{ matrix.python-version }}
         uses: astral-sh/setup-uv@v6
