@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v0.2.0 (2026-11-14)
+
+### Bug Fixes
+
+- Handle empty or unparseable accent colour
+  ([`1d3d3f0`](https://github.com/krosseye/qade/commit/1d3d3f02c9696c713d8796cc0d33a88e5fe0706a))
+
+- Restore antialiasing setting used by host
+  ([`c0050e0`](https://github.com/krosseye/qade/commit/c0050e064719478f3b3cd1a0ccc35710706462c7))
+
+### Features
+
+- Add qade_launcher
+  ([`9bdbc34`](https://github.com/krosseye/qade/commit/9bdbc34d7ff024a3b3f2e32a5da2feb8e0224762))
+
+### Testing
+
+- Add launcher test suite
+  ([`5b2e861`](https://github.com/krosseye/qade/commit/5b2e861d3e981f6b17ec5d972a56515a9a27229c))
+
+
 ## v0.1.1 (2026-11-14)
 
 ### Bug Fixes
