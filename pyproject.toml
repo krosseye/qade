@@ -2,6 +2,7 @@
 name = "qade"
 version = "0.1.0"
 description = "Retro vector arcade game engine built on PySide6."
+license = { file = "LICENSE" }
 readme = "README.md"
 authors = [
   { name = "KROSSEYE", email = "30990184+KROSSEYE@users.noreply.github.com" },
@@ -14,12 +15,13 @@ dependencies = [
   "pyside6>=6.12.0,<7.0.0",
 ]
 
-[project.scripts]
-qade = "qade:main"
 
 [build-system]
 requires = ["uv_build>=0.8.15,<0.9.0"]
 build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = ["qade_engine"]
 
 [dependency-groups]
 dev = ["mypy>=2.4.1", "ruff>=0.17.4", "prek>=0.5.10"]
@@ -27,3 +29,7 @@ dev = ["mypy>=2.4.1", "ruff>=0.17.4", "prek>=0.5.10"]
 
 [tool.mypy]
 files = ["src"]
+
+[[tool.mypy.overrides]]
+module = "sdl2.*"
+ignore_missing_imports = true
