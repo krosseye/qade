@@ -137,8 +137,10 @@ class Cabinet:
         visible = [face for face in faces if face[0] >= 0]
         visible.sort(key=lambda face: -face[0])
         shade = (OFFLINE_SHADE if self.offline else SHADE) * (1.0 - brightness)
+        antialiased = painter.testRenderHint(QPainter.RenderHint.Antialiasing)
         for _, kind, points in visible:
             self._draw_face(painter, camera, kind, points, brightness, int(shade))
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, antialiased)
 
     @staticmethod
     def _face(
