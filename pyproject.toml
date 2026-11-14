@@ -47,6 +47,7 @@ exclude = ["docs/getting-started.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = [".", "tests"]
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
