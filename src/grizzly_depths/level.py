@@ -22,8 +22,8 @@ class Level:
 
 def build_level(number: int, rng: random.Random) -> Level:
     """Level ``number`` (from 1), drawn from ``rng``: the player starts in a
-    corner facing an open way, and the exit is the cell furthest from the start
-    by path."""
+    corner facing an open way, the exit is the cell furthest from the start
+    by path, and the bear sleeps near the centre."""
     size = config.maze_size(number)
     maze = Maze(size, size, rng, config.LOOP_FRACTION, config.braid(number))
 
@@ -32,22 +32,13 @@ def build_level(number: int, rng: random.Random) -> Level:
     exit_cell = max(from_start, key=from_start.__getitem__)
 
     from_exit = maze.distances(exit_cell)
-    furthest = from_start[exit_cell]
     middle = (size - 1) / 2
-    lairs = (
-        [
-            cell
-            for cell in maze.cells()
-            if hypot(cell[0] - middle, cell[1] - middle) <= size / 4
-            and from_exit[cell] >= 3
-        ]
-        or [
-            cell
-            for cell, distance in from_start.items()
-            if distance >= furthest * 0.5 and from_exit[cell] >= 3
-        ]
-        or [exit_cell]
-    )
+    lairs = [
+        cell
+        for cell in maze.cells()
+        if hypot(cell[0] - middle, cell[1] - middle) <= size / 4
+        and from_exit[cell] >= 3
+    ]
     bear = Bear(
         maze,
         rng.choice(lairs),
