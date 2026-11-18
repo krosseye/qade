@@ -10,7 +10,7 @@ from PySide6.QtTextToSpeech import QVoice
 
 from qade_engine.audio import SoundBus, open_bus
 from qade_engine.audio.cache import DEFAULT_CACHE
-from qade_engine.audio.music import MusicLoop
+from qade_engine.audio.music import MusicTrack
 from qade_engine.audio.song import Song, song_path
 from qade_engine.core.field import PlayField
 from qade_engine.core.state_machine import (
@@ -97,7 +97,7 @@ class ArcadeGame:
         INFO: The game's identity. Required.
         CANVAS_SIZE: Logical resolution; the host scales it to fit the window.
         MUSIC: A ``Song`` for the sound chip, baked when the game starts,
-            or None.
+            or None. Each run starts with it; ``play_music`` swaps it.
         MUSIC_VOLUME: Music volume, 0 to 1.
         TRANSMISSION_TITLE: Header of the standby and intro screens. Empty
             uses the game's title.
@@ -205,7 +205,10 @@ class ArcadeGame:
         )
         self.high_score = self.high_score_store.load()
 
-        self._music: MusicLoop | None = None
+        self._song = self.MUSIC  # the background music
+        self._sting: Song | None = None  # a one-shot interrupting it
+        self._music: MusicTrack | None = None  # whichever is loaded
+        self._started = False
         self.sounds: SoundBus | None = None
         self._intro: IntroSequencer | None = None
         self._suspended = False
@@ -363,6 +366,8 @@ class ArcadeGame:
         if target is Phase.GAME_OVER:
             self._record_high_score()
         if source is Phase.GAME_OVER:
+            self._sting, self._song = None, self.MUSIC
+            self._load_music(self.MUSIC)
             self._new_run()
 
     def _record_high_score(self):
@@ -382,14 +387,8 @@ class ArcadeGame:
 
     def start(self) -> None:
         """Acquires music, the intro and sound effects, as the settings allow."""
-        if self.MUSIC and self.services.settings.music:
-            try:
-                path = song_path(self.MUSIC, DEFAULT_CACHE)
-                self._music = MusicLoop(path, volume=self.MUSIC_VOLUME)
-            except OSError as exc:
-                _log.warning(
-                    "can't bake %s, playing without it: %s", self.MUSIC.name, exc
-                )
+        self._started = True
+        self._load_music(self._song)
         self._intro = IntroSequencer(
             self.INTRO_LINES,
             use_tts=self.services.settings.use_tts,
@@ -408,6 +407,8 @@ class ArcadeGame:
         """
         if self.phase in (Phase.PLAYING, Phase.PAUSED):
             self._record_high_score()
+        self._started = False
+        self._sting = None
         if self._music is not None:
             self._music.stop()
         if self._intro is not None:
@@ -427,6 +428,37 @@ class ArcadeGame:
         """The player is back. A paused run stays paused until they resume it."""
         self._suspended = False
         self._sync_presentation()
+
+    def play_music(self, song: Song | None) -> None:
+        """A looping song becomes the background music. If it is the background
+        already, it carries on undisturbed.
+
+        A one-shot interrupts the background, then hands back when it ends.
+
+        Args:
+            song: The track.
+        """
+        if song is not None and not song.loop:
+            self._sting = song
+            self._load_music(song)
+        elif song != self._song:
+            self._song = song
+            if self._sting is None:
+                self._load_music(song)
+
+    def _load_music(self, song: Song | None) -> None:
+        """Replaces the loaded track with ``song``."""
+        if self._music is not None:
+            self._music.stop()
+        self._music = None
+        if not (self._started and song and self.services.settings.music):
+            return
+        try:
+            path = song_path(song, DEFAULT_CACHE)
+        except OSError as exc:
+            _log.warning("can't bake %s, playing without it: %s", song.name, exc)
+            return
+        self._music = MusicTrack(path, volume=self.MUSIC_VOLUME, loop=song.loop)
 
     def play_sound(self, name: str, step: int | None = None, vol: float = 1.0) -> None:
         """Plays a registered sound. Does nothing when sound effects are off.
@@ -508,6 +540,9 @@ class ArcadeGame:
         while it shows. Both are silent while the player is away.
         """
         phase = self.phase
+        if self._sting is not None and (self._music is None or self._music.finished):
+            self._sting = None
+            self._load_music(self._song)
         if self._music is not None:
             if self._suspended or phase in (Phase.STANDBY, Phase.PAUSED):
                 self._music.stop()
