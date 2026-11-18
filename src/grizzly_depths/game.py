@@ -22,6 +22,7 @@ from qade_engine.input import InputMap
 from qade_engine.ui import HUD_MARGIN, HudRow
 
 from . import INFO, config, controls, sounds
+from .bear import Mood
 from .controls import Action
 from .level import Level, build_level
 from .maze import DIRECTIONS, opposite
@@ -251,6 +252,8 @@ class GrizzlyDepths(ArcadeGame):
         and a heartbeat while it hunts you, quickening as it nears."""
         bear = self.level.bear
         was_awake, was_hunting, was_at = bear.awake, bear.hunting, bear.cell
+        if self._touching_bear():
+            bear.startle()
         bear.step(dt, self.cell, chiming=self.attuning)
         loudness = sounds.bear_volume(bear.path_distance)
         if bear.hunting and not was_hunting:
@@ -279,6 +282,9 @@ class GrizzlyDepths(ArcadeGame):
         return (self.cell[0] + 0.5, self.cell[1] + 0.5)
 
     def _is_caught(self) -> bool:
+        return self.level.bear.mood is Mood.HUNTING and self._touching_bear()
+
+    def _touching_bear(self) -> bool:
         bear_x, bear_z = self.level.bear.position
         player_x, player_z = self._player_position()
         return hypot(bear_x - player_x, bear_z - player_z) < config.CATCH_DISTANCE

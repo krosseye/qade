@@ -10,6 +10,7 @@ from PySide6.QtGui import QImage, QPainter
 from support import to_playing
 
 from grizzly_depths import config, controls, sounds
+from grizzly_depths.bear import Mood
 from grizzly_depths.controls import Action
 from grizzly_depths.game import CAUGHT_DISTANCE, GrizzlyDepths
 from grizzly_depths.maze import DIRECTIONS
@@ -130,6 +131,7 @@ def test_bear_on_your_cell_ends_the_run_facing_it(game: GrizzlyDepths) -> None:
     game.facing += 8
     game.camera_yaw = game.facing * 90.0
     bear = game.level.bear
+    bear.mood = Mood.HUNTING
     bear.cell = bear.next = bear.came_from = game.cell
     bear.progress = 0.0
     hold(game)
@@ -150,6 +152,7 @@ def test_caught_dead_centre_turns_to_the_way_the_bear_came(
     way = m.open_directions(game.cell)[0]
     game.facing = way + 1  # looking elsewhere, so the view must turn
     game.camera_yaw = game.facing * 90.0
+    bear.mood = Mood.HUNTING
     bear.cell = bear.next = game.cell
     bear.came_from = m.step(game.cell, way)
     bear.progress = 0.0
@@ -163,6 +166,23 @@ def test_caught_dead_centre_turns_to_the_way_the_bear_came(
     )
     yaw = radians(game.caught_yaw)
     assert (sin(yaw), cos(yaw)) == pytest.approx((dx, dz), abs=1e-9)
+
+
+def test_walking_into_the_sleeping_bear_wakes_it_then_it_catches_you(
+    game: GrizzlyDepths,
+) -> None:
+    """Stumbling onto the lair makes it rear and roar, not kill; stay put
+    through the rearing and it charges and catches you."""
+    bear = game.level.bear
+    assert bear.mood is Mood.ASLEEP
+    bear.cell = bear.next = bear.came_from = game.cell
+    bear.progress = 0.0
+    hold(game)
+    assert bear.mood is Mood.REARING
+    assert game.phase is Phase.PLAYING
+
+    hold(game, seconds=config.REAR_TIME)
+    assert game.phase is Phase.GAME_OVER
 
 
 # ---- drawing ----------------------------------------------------------------

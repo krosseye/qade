@@ -228,11 +228,14 @@ class Run:
         self.time, self.charge = 0.0, 0.0
         self.cooldown = 0.0
 
-    def caught(self) -> bool:
+    def touching(self) -> bool:
         bx, bz = self.level.bear.position
         return hypot(bx - self.cell[0] - 0.5, bz - self.cell[1] - 0.5) < (
             config.CATCH_DISTANCE
         )
+
+    def caught(self) -> bool:
+        return self.level.bear.mood is Mood.HUNTING and self.touching()
 
     def play(self, bot, limit: float = 600.0) -> str:
         bear = self.level.bear
@@ -242,6 +245,8 @@ class Run:
             if self.charge >= 1.0:
                 return "escaped"
             was = bear.cell
+            if self.touching():
+                bear.startle()
             bear.step(DT, self.cell, chiming=attuning)
             # At these speeds it moves at most one cell per tick.
             assert bear.cell in {was} | self._neighbours(was), "through a wall"

@@ -71,6 +71,11 @@ class Bear:
         t = self.progress
         return (x0 + (x1 - x0) * t + 0.5, z0 + (z1 - z0) * t + 0.5)
 
+    def startle(self) -> None:
+        """Walked into while asleep."""
+        if self.mood is Mood.ASLEEP:
+            self.mood, self.timer = Mood.REARING, REAR_TIME
+
     def step(self, dt: float, target: Cell, chiming: bool = False) -> None:
         """Advance one fixed step of stalking the player.
 
