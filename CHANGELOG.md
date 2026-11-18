@@ -2,6 +2,66 @@
 
 <!-- version list -->
 
+## v0.3.0 (2026-11-18)
+
+### Bug Fixes
+
+- Centre thin pulse waves so their fades don't thump
+  ([`a4e4c01`](https://github.com/krosseye/qade/commit/a4e4c01bdff177b96c9fc05c1c810da4a0af6a08))
+
+- Spawn bear near centre of maze
+  ([`51cf87a`](https://github.com/krosseye/qade/commit/51cf87a827cd95664a1a381b82a4539e1be53c70))
+
+### Chores
+
+- Exclude the music guide from ruff format
+  ([`388b877`](https://github.com/krosseye/qade/commit/388b877ebdc1c4db46afb6fdd1904c195ea0599c))
+
+### Documentation
+
+- Add a music guide and reference
+  ([`87f5664`](https://github.com/krosseye/qade/commit/87f56640c4e492e115224340fe42c419b301556f))
+
+- Add music examples for the sound chip
+  ([`8a2d59a`](https://github.com/krosseye/qade/commit/8a2d59a7df7e2feae45fcac54597849cf924e231))
+
+### Features
+
+- Add grizzly_depths
+  ([`c07c8f7`](https://github.com/krosseye/qade/commit/c07c8f7e7eb1b7d048f8b7da288bc5127f64a35a))
+
+- Draw ceiling grid
+  ([`062d226`](https://github.com/krosseye/qade/commit/062d226ee57d877d44ca74d9cbe1c4af99649fbd))
+
+- Give the tunnels landmarks to recognise
+  ([`ee16b21`](https://github.com/krosseye/qade/commit/ee16b21b6b3413403ff5149468936f11b9711152))
+
+- Place the exit at a away far cell and the lair between it and the start
+  ([`e2a18af`](https://github.com/krosseye/qade/commit/e2a18afd297ddfb44c92fe7b3ccbf08a4901858b))
+
+- Play songs on the sound chip
+  ([`0cafbd8`](https://github.com/krosseye/qade/commit/0cafbd8bc336662bc95e059926f54c716c5552ac))
+
+- Score the walls near the lair with claw marks
+  ([`57a49fb`](https://github.com/krosseye/qade/commit/57a49fb6f1fa7a1471b8233bd0ac7dc6da3d8055))
+
+- Swap music tracks, and let stings hand back
+  ([`6ffe3e0`](https://github.com/krosseye/qade/commit/6ffe3e08c3a3f6556ae24cfcfccb85966a9e4a58))
+
+- Wake a sleeping bear that is stumbled into instead of ending the run
+  ([`4c3eaf8`](https://github.com/krosseye/qade/commit/4c3eaf85eef27ff38676eac26a30f7e7e87c0d30))
+
+### Refactoring
+
+- Move the WAV cache out of the sound bus
+  ([`78a195c`](https://github.com/krosseye/qade/commit/78a195cee8a5c0510fec13b6db29ff7feff71f7f))
+
+### Testing
+
+- Add grizzly's tests
+  ([`76ea1ef`](https://github.com/krosseye/qade/commit/76ea1ef9493face120937ee34dae37b91384366e))
+
+
 ## v0.2.0 (2026-11-14)
 
 ### Bug Fixes
