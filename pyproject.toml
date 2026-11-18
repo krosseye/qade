@@ -46,7 +46,7 @@ module = "sdl2.*"
 ignore_missing_imports = true
 
 [tool.ruff.format]
-exclude = ["docs/getting-started.md"]
+exclude = ["docs/getting-started.md", "docs/music.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
