@@ -1,13 +1,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Realtime sound effects through small pools of QSoundEffect voices."""
 
-import hashlib
 import logging
 import math
-import os
 import random
 import time
-import wave
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -17,12 +14,11 @@ from PySide6.QtCore import QObject, QUrl
 from PySide6.QtMultimedia import QSoundEffect
 
 from qade_engine.core import clamp
-from qade_engine.persistence import SAVE_ROOT
 
+from .cache import DEFAULT_CACHE, cached_wav
 from .synth import RATE, Sound, bake, layers
 
 _FOREVER = QSoundEffect.Loop.Infinite.value
-DEFAULT_CACHE = SAVE_ROOT / "sfx_cache"
 
 _log = logging.getLogger(__name__)
 
@@ -255,21 +251,7 @@ class SoundBus(QObject):
         voice.end = 0.0
 
     def _url(self, pcm: np.ndarray) -> QUrl:
-        data = pcm.tobytes()
-        path = self._cache / f"{hashlib.sha1(data).hexdigest()}.wav"
-        if not path.exists():
-            partial = path.with_suffix(f".{os.getpid()}.part")
-            try:
-                with wave.open(str(partial), "wb") as w:
-                    w.setnchannels(1)
-                    w.setsampwidth(2)
-                    w.setframerate(RATE)
-                    w.writeframes(data)
-                os.replace(partial, path)
-            except OSError:
-                partial.unlink(missing_ok=True)
-                raise
-        return QUrl.fromLocalFile(str(path))
+        return QUrl.fromLocalFile(str(cached_wav(pcm, self._cache)))
 
 
 def open_bus(register: Callable[[SoundBus], None]) -> SoundBus | None:
