@@ -24,10 +24,12 @@ from qade_engine.graphics import (
 )
 
 from ..config import VIEW_RADIUS
+from ..landmarks import Mark
 from ..level import Level
 from ..maze import Cell, Segment
 from .bear import BEAR_EDGE, draw_bear
 from .fog import fog_at
+from .landmarks import draw_mark
 
 WALL = QColor(150, 120, 255)
 WALL_FILL = QColor(26, 18, 56)
@@ -88,8 +90,17 @@ def draw_dungeon(
             (x0, WALL_HEIGHT, z0),
         ]
         if culler.visible(quad):
-            claws = _clawed(level, _facing_side(wall, eye_x, eye_z))
-            items.append((d, partial(_draw_wall, painter, camera, quad, d, claws)))
+            side = _facing_side(wall, eye_x, eye_z)
+            claws = _clawed(level, side)
+            mark = level.marks.get((wall, side))
+            items.append(
+                (
+                    d,
+                    partial(
+                        _draw_wall, painter, camera, quad, d, claws, wall, side, mark
+                    ),
+                )
+            )
 
     exit_x, exit_z = level.exit[0] + 0.5, level.exit[1] + 0.5
     d = distance(exit_x, exit_z)
@@ -179,7 +190,14 @@ def _clawed(level: Level, cell: Cell) -> bool:
 
 
 def _draw_wall(
-    painter: QPainter, camera: Camera, quad, distance: float, claws: bool
+    painter: QPainter,
+    camera: Camera,
+    quad,
+    distance: float,
+    claws: bool,
+    wall: Segment,
+    side: Cell,
+    mark: Mark | None,
 ) -> None:
     polygon = camera.polygon(quad)
     if polygon is None:
@@ -194,6 +212,8 @@ def _draw_wall(
     color = with_alpha(WALL, int(255 * fog))
     painter.setPen(QPen(color, 1.6) if fog > 0.7 else hairline(color))
     painter.drawPolygon(polygon)
+    if mark is not None:
+        draw_mark(painter, camera, wall, side, mark, fog)
     if not claws:
         return
     (x0, _, z0), (x1, _, z1) = quad[0], quad[1]

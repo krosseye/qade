@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from . import config
 from .bear import Bear
+from .landmarks import Marks, build_marks
 from .maze import Cell, Maze
 
 
@@ -18,6 +19,7 @@ class Level:
     exit: Cell
     bear: Bear
     to_lair: dict[Cell, int]
+    marks: Marks
 
 
 EXIT_REACH = 0.7  # the exit is at least this far from the start
@@ -61,6 +63,7 @@ def build_level(number: int, rng: random.Random) -> Level:
         prowl_pace=config.prowl_pace(number),
         rng=rng,
     )
+    to_lair = maze.distances(bear.cell)
     return Level(
         number=number,
         maze=maze,
@@ -68,5 +71,6 @@ def build_level(number: int, rng: random.Random) -> Level:
         facing=rng.choice(maze.open_directions(start)),
         exit=exit_cell,
         bear=bear,
-        to_lair=maze.distances(bear.cell),
+        to_lair=to_lair,
+        marks=build_marks(maze, hash(tuple(maze.walls)), to_lair),
     )
