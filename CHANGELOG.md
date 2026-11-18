@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.4.0 (2026-11-18)
+
+### Features
+
+- Add music to grizzly depths
+  ([`c7d2e10`](https://github.com/krosseye/qade/commit/c7d2e10248f9b16a97f4f760fa8b518da27edb81))
+
+
 ## v0.3.0 (2026-11-18)
 
 ### Bug Fixes
