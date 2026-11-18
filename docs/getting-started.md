@@ -7,15 +7,15 @@ saved high score, the HUD, the game-over screen and the fades between them.
 
 ## Lay out the package
 
-A game is a Python package. The engine finds the game's files (music, the
-window icon) in a `resources` folder inside it.
+A game is a Python package. The engine finds the game's files (e.g., the window
+icon) in a `resources` folder inside it.
 
 ```text
 dodge/
 ├── __init__.py    # the game's identity, and how to build it
 ├── __main__.py    # lets `python -m dodge` play it
 ├── game.py        # the game itself
-└── resources/     # optional: music.wav, icon.png
+└── resources/     # optional: icon.png
 ```
 
 ## Describe the game
@@ -62,7 +62,8 @@ Press `P` to pause and `Esc` to quit. A gamepad works too.
 - **Sound effects:** override `register_sounds` and register sounds from
   [`presets`][qade_engine.audio.presets] or your own
   [`Sfx`][qade_engine.audio.Sfx]. Play them with `play_sound`.
-- **Music:** put a WAV in `resources/` and set `MUSIC = "music.wav"`.
+- **Music:** write a [`Song`][qade_engine.audio.Song] for the sound chip and
+  set `MUSIC` to it. It is baked the first time the game starts.
 - **Smooth motion:** steps run at a fixed rate (`TICK_HZ`), not the display's.
   Move things on by [`frame.alpha`][qade_engine.host.Frame] of a step when
   drawing, so motion stays smooth on fast displays.

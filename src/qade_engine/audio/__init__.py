@@ -18,6 +18,7 @@ Example:
 
 from . import presets
 from .bus import SoundBus, open_bus
+from .song import Part, Song, bake_song
 from .synth import Sfx
 
-__all__ = ["Sfx", "SoundBus", "open_bus", "presets"]
+__all__ = ["Part", "Sfx", "Song", "SoundBus", "bake_song", "open_bus", "presets"]

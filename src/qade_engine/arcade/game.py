@@ -9,7 +9,9 @@ from PySide6.QtCore import Qt
 from PySide6.QtTextToSpeech import QVoice
 
 from qade_engine.audio import SoundBus, open_bus
+from qade_engine.audio.cache import DEFAULT_CACHE
 from qade_engine.audio.music import MusicLoop
+from qade_engine.audio.song import Song, song_path
 from qade_engine.core.field import PlayField
 from qade_engine.core.state_machine import (
     Edge,
@@ -26,7 +28,6 @@ from qade_engine.host.app import Frame, GameInfo, Services
 from qade_engine.input import InputMap, UIAction, add_ui_actions
 from qade_engine.narration import IntroSequencer
 from qade_engine.persistence import HighScoreStore
-from qade_engine.resources import resource_path
 from qade_engine.ui.hud import draw_game_over, draw_hud, draw_paused, format_clock
 from qade_engine.ui.overlays import draw_intro, draw_standby
 from qade_engine.ui.panels import HudRow
@@ -95,7 +96,8 @@ class ArcadeGame:
     Attributes:
         INFO: The game's identity. Required.
         CANVAS_SIZE: Logical resolution; the host scales it to fit the window.
-        MUSIC: Music file in the game package's ``resources`` folder, or None.
+        MUSIC: A ``Song`` for the sound chip, baked when the game starts,
+            or None.
         MUSIC_VOLUME: Music volume, 0 to 1.
         TRANSMISSION_TITLE: Header of the standby and intro screens. Empty
             uses the game's title.
@@ -149,7 +151,7 @@ class ArcadeGame:
 
     INFO: GameInfo
     CANVAS_SIZE: tuple[int, int] = (800, 600)
-    MUSIC: str | None = None
+    MUSIC: Song | None = None
     MUSIC_VOLUME = 0.25
 
     TRANSMISSION_TITLE = ""
@@ -381,11 +383,13 @@ class ArcadeGame:
     def start(self) -> None:
         """Acquires music, the intro and sound effects, as the settings allow."""
         if self.MUSIC and self.services.settings.music:
-            path = resource_path(self.INFO.package, self.MUSIC)
-            if path.exists():
+            try:
+                path = song_path(self.MUSIC, DEFAULT_CACHE)
                 self._music = MusicLoop(path, volume=self.MUSIC_VOLUME)
-            else:
-                _log.warning("music not found, playing without it: %s", path)
+            except OSError as exc:
+                _log.warning(
+                    "can't bake %s, playing without it: %s", self.MUSIC.name, exc
+                )
         self._intro = IntroSequencer(
             self.INTRO_LINES,
             use_tts=self.services.settings.use_tts,
