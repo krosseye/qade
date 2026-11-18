@@ -9,6 +9,7 @@ edit_uri = "edit/main/docs/"
 nav = [
   { "Home" = "index.md" },
   { "Getting started" = "getting-started.md" },
+  { "Music" = "music.md" },
   { "API reference" = [
     "reference/index.md",
     { "Arcade" = [
@@ -32,6 +33,7 @@ nav = [
       "reference/audio/index.md",
       "reference/audio/sound_bus.md",
       "reference/audio/presets.md",
+      "reference/audio/music.md",
     ] },
     { "Graphics" = [
       "reference/graphics/index.md",

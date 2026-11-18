@@ -1,8 +1,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Synthesised sound effects, and the bus that plays them.
+"""Synthesised sound effects and music, and the bus that plays the effects.
 
 In an ``ArcadeGame``, register sounds in ``register_sounds`` and play them
 with ``play_sound`` and ``stop_sound``, which do nothing when sound is off.
+
+Music is a ``Song`` for the sound chip: set it as ``MUSIC``, and swap tracks
+or play a sting with ``play_music``.
 
 Example:
     ```python
@@ -18,6 +21,7 @@ Example:
 
 from . import presets
 from .bus import SoundBus, open_bus
+from .song import Part, Song, bake_song
 from .synth import Sfx
 
-__all__ = ["Sfx", "SoundBus", "open_bus", "presets"]
+__all__ = ["Part", "Sfx", "Song", "SoundBus", "bake_song", "open_bus", "presets"]
