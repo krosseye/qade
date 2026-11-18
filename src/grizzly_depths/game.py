@@ -21,7 +21,7 @@ from qade_engine.graphics import (
 from qade_engine.input import InputMap
 from qade_engine.ui import HUD_MARGIN, HudRow
 
-from . import INFO, config, controls, sounds
+from . import INFO, config, controls, music, sounds
 from .bear import Mood
 from .controls import Action
 from .level import Level, build_level
@@ -46,7 +46,7 @@ ViewState = tuple[float, float, float, float, float]  # camera x, z, yaw; bear x
 class GrizzlyDepths(ArcadeGame):
     INFO = INFO
     CANVAS_SIZE = (config.CANVAS_WIDTH, config.CANVAS_HEIGHT)
-    MUSIC = None
+    MUSIC = music.SONG
     IDLE_STAR_VELOCITY = (0.0, -160.0)
 
     TRANSMISSION_TITLE = "SCRATCHED INTO THE CAVE WALL"
