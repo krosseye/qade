@@ -63,7 +63,8 @@ Press `P` to pause and `Esc` to quit. A gamepad works too.
   [`presets`][qade_engine.audio.presets] or your own
   [`Sfx`][qade_engine.audio.Sfx]. Play them with `play_sound`.
 - **Music:** write a [`Song`][qade_engine.audio.Song] for the sound chip and
-  set `MUSIC` to it. It is baked the first time the game starts.
+  set `MUSIC` to it. Swap tracks and play stings with `play_music`. The
+  [Music](music.md) page shows how.
 - **Smooth motion:** steps run at a fixed rate (`TICK_HZ`), not the display's.
   Move things on by [`frame.alpha`][qade_engine.host.Frame] of a step when
   drawing, so motion stays smooth on fast displays.
