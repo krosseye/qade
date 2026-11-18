@@ -17,6 +17,7 @@ class Level:
     facing: int
     exit: Cell
     bear: Bear
+    to_lair: dict[Cell, int]
 
 
 EXIT_REACH = 0.7  # the exit is at least this far from the start
@@ -67,4 +68,5 @@ def build_level(number: int, rng: random.Random) -> Level:
         facing=rng.choice(maze.open_directions(start)),
         exit=exit_cell,
         bear=bear,
+        to_lair=maze.distances(bear.cell),
     )

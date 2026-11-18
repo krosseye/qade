@@ -25,12 +25,14 @@ from qade_engine.graphics import (
 
 from ..config import VIEW_RADIUS
 from ..level import Level
-from .bear import draw_bear
+from ..maze import Cell, Segment
+from .bear import BEAR_EDGE, draw_bear
 from .fog import fog_at
 
 WALL = QColor(150, 120, 255)
 WALL_FILL = QColor(26, 18, 56)
 FLOOR = QColor(90, 70, 170)
+CLAW_REACH = 2
 
 
 WALL_HEIGHT = 1.0
@@ -74,7 +76,8 @@ def draw_dungeon(
     _draw_floor(painter, camera, culler, level, distance)
 
     items: list[tuple[float, Callable[[], None]]] = []
-    for (x0, z0), (x1, z1) in level.maze.walls:
+    for wall in level.maze.walls:
+        (x0, z0), (x1, z1) = wall
         d = distance((x0 + x1) / 2, (z0 + z1) / 2)
         if d > VIEW_RADIUS:
             continue
@@ -85,7 +88,8 @@ def draw_dungeon(
             (x0, WALL_HEIGHT, z0),
         ]
         if culler.visible(quad):
-            items.append((d, partial(_draw_wall, painter, camera, quad, d)))
+            claws = _clawed(level, _facing_side(wall, eye_x, eye_z))
+            items.append((d, partial(_draw_wall, painter, camera, quad, d, claws)))
 
     exit_x, exit_z = level.exit[0] + 0.5, level.exit[1] + 0.5
     d = distance(exit_x, exit_z)
@@ -161,7 +165,22 @@ def _line(painter: QPainter, camera: Camera, segment, color: QColor) -> None:
         painter.drawLine(line)
 
 
-def _draw_wall(painter: QPainter, camera: Camera, quad, distance: float) -> None:
+def _facing_side(wall: Segment, eye_x: float, eye_z: float) -> Cell:
+    """The cell on the side of ``wall`` you're looking from."""
+    (x0, z0), (x1, z1) = wall
+    if x0 == x1:
+        return (int(x0) - 1 if eye_x < x0 else int(x0), int(min(z0, z1)))
+    return (int(min(x0, x1)), int(z0) - 1 if eye_z < z0 else int(z0))
+
+
+def _clawed(level: Level, cell: Cell) -> bool:
+    """Whether the walls of ``cell`` are scored."""
+    return level.to_lair.get(cell, CLAW_REACH + 1) <= CLAW_REACH
+
+
+def _draw_wall(
+    painter: QPainter, camera: Camera, quad, distance: float, claws: bool
+) -> None:
     polygon = camera.polygon(quad)
     if polygon is None:
         return
@@ -175,6 +194,17 @@ def _draw_wall(painter: QPainter, camera: Camera, quad, distance: float) -> None
     color = with_alpha(WALL, int(255 * fog))
     painter.setPen(QPen(color, 1.6) if fog > 0.7 else hairline(color))
     painter.drawPolygon(polygon)
+    if not claws:
+        return
+    (x0, _, z0), (x1, _, z1) = quad[0], quad[1]
+    painter.setPen(QPen(with_alpha(BEAR_EDGE, int(230 * fog)), 1.6))
+    for k in range(3):
+        u0, u1 = 0.36 + 0.09 * k, 0.46 + 0.09 * k
+        top = (x0 + (x1 - x0) * u0, 0.78 - 0.03 * k, z0 + (z1 - z0) * u0)
+        bottom = (x0 + (x1 - x0) * u1, 0.42 - 0.03 * k, z0 + (z1 - z0) * u1)
+        line = camera.line(top, bottom)
+        if line is not None:
+            painter.drawLine(line)
 
 
 def _draw_beacon(
