@@ -114,7 +114,7 @@ def _draw_floor(
     level: Level,
     distance: Callable[[float, float], float],
 ) -> None:
-    """Faint grid lines on the floor, and a glow on the exit cell."""
+    """Faint grid lines on the floor and ceiling, and a glow on the exit cell."""
     painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
     reach = int(VIEW_RADIUS) + 1
     cx, cz = int(camera.pose.x), int(camera.pose.z)
@@ -129,9 +129,15 @@ def _draw_floor(
                 fog = fog_at(distance(x + dx / 2, z + dz / 2))
                 if fog <= 0:
                     continue
-                segment: list[Point3] = [(x, 0.0, z), (x + dx, 0.0, z + dz)]
-                if culler.visible(segment):
-                    _line(painter, camera, segment, with_alpha(FLOOR, int(90 * fog)))
+                for y, alpha in ((0.0, 90), (WALL_HEIGHT, 55)):
+                    segment: list[Point3] = [(x, y, z), (x + dx, y, z + dz)]
+                    if culler.visible(segment):
+                        _line(
+                            painter,
+                            camera,
+                            segment,
+                            with_alpha(FLOOR, int(alpha * fog)),
+                        )
 
     ex, ez = level.exit
     tile: list[Point3] = [
