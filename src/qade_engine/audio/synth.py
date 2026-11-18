@@ -177,7 +177,7 @@ def render(s: Sfx, pitch: float = 1.0) -> np.ndarray:
             duty = (
                 np.linspace(s.duty, s.duty_end, n) if s.duty_end is not None else s.duty
             )
-            y = np.where(frac < duty, 1.0, -1.0)
+            y = np.where(frac < duty, 1.0, -1.0) - (2 * duty - 1)
         elif s.wave == "tri":
             y = 4 * np.abs(frac - 0.5) - 1
         else:
@@ -190,7 +190,8 @@ def render(s: Sfx, pitch: float = 1.0) -> np.ndarray:
     q = 2 ** (s.bits - 1)
     # Crushed after the envelope, so the decay itself steps down audibly.
     y = np.round(y * env * q) / q
-    return np.rint(y * s.vol * 32767).astype(np.int16)
+    # Clipped so a loud thin square can't wrap round to the opposite sign.
+    return np.rint(np.clip(y * s.vol, -1.0, 1.0) * 32767).astype(np.int16)
 
 
 def layers(sound: Sound) -> list[tuple[Sfx, float]]:
