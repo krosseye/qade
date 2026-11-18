@@ -3,7 +3,6 @@
 
 import random
 from dataclasses import dataclass
-from math import hypot
 
 from . import config
 from .bear import Bear
@@ -20,28 +19,40 @@ class Level:
     bear: Bear
 
 
+EXIT_REACH = 0.7  # the exit is at least this far from the start
+START_GAP = 0.4  # the lair is at least this far from the start,
+EXIT_GAP = 0.3  # and this far from the exit, so the bear can't camp it
+
+
 def build_level(number: int, rng: random.Random) -> Level:
     """Level ``number`` (from 1), drawn from ``rng``: the player starts in a
-    corner facing an open way, the exit is the cell furthest from the start
-    by path, and the bear sleeps near the centre."""
+    corner facing an open way, the exit is a random cell far from the start
+    by path, and the bear sleeps clear of both, most likely on the way."""
     size = config.maze_size(number)
     maze = Maze(size, size, rng, config.LOOP_FRACTION, config.braid(number))
 
     start = rng.choice([(0, 0), (size - 1, 0), (0, size - 1), (size - 1, size - 1)])
     from_start = maze.distances(start)
-    exit_cell = max(from_start, key=from_start.__getitem__)
+    farthest = max(from_start.values())
+    exit_cell = rng.choice(
+        [cell for cell in maze.cells() if from_start[cell] >= EXIT_REACH * farthest]
+    )
 
     from_exit = maze.distances(exit_cell)
-    middle = (size - 1) / 2
+    route = from_start[exit_cell]
+    start_gap, exit_gap = int(START_GAP * farthest), int(EXIT_GAP * farthest)
     lairs = [
         cell
         for cell in maze.cells()
-        if hypot(cell[0] - middle, cell[1] - middle) <= size / 4
-        and from_exit[cell] >= 3
+        if from_start[cell] >= start_gap and from_exit[cell] >= exit_gap
+    ]
+    weights = [
+        1 / (4 + abs(from_start[c] - route / 2) + from_start[c] + from_exit[c] - route)
+        for c in lairs
     ]
     bear = Bear(
         maze,
-        rng.choice(lairs),
+        rng.choices(lairs, weights)[0],
         speed=config.bear_speed(number),
         wake_delay=config.wake_delay(number),
         scent_range=config.scent_range(number),

@@ -10,7 +10,7 @@ import pytest
 
 from grizzly_depths import config
 from grizzly_depths.bear import Bear, Mood
-from grizzly_depths.level import build_level
+from grizzly_depths.level import EXIT_GAP, EXIT_REACH, START_GAP, build_level
 from grizzly_depths.maze import Maze, opposite
 
 DT = 1 / 64
@@ -109,12 +109,12 @@ def test_level_layout(number: int, seed: int) -> None:
     assert set(level.start) <= {0, size - 1}  # a corner
     assert m.is_open(level.start, level.facing)
     from_start = m.distances(level.start)
-    assert from_start[level.exit] == max(from_start.values())
+    farthest = max(from_start.values())
+    assert from_start[level.exit] >= EXIT_REACH * farthest
     assert level.bear.mood is Mood.ASLEEP
-    bx, bz = level.bear.cell
-    middle = (size - 1) / 2
-    assert hypot(bx - middle, bz - middle) <= size / 4
-    assert m.distances(level.exit)[level.bear.cell] >= 3
+    lair = level.bear.cell
+    assert from_start[lair] >= int(START_GAP * farthest)
+    assert m.distances(level.exit)[lair] >= max(3, int(EXIT_GAP * farthest))
 
 
 # ---- bear -------------------------------------------------------------------
