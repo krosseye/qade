@@ -2,6 +2,39 @@
 
 <!-- version list -->
 
+## v0.6.0 (2026-11-21)
+
+### Bug Fixes
+
+- Let SIGINT and SIGTERM stop the game
+  ([`9f658a2`](https://github.com/krosseye/qade/commit/9f658a29b6202e840532feb8530a904f55a6ca1d))
+
+- Stop stars drifting between frames when nothing scrolls them
+  ([`51223cb`](https://github.com/krosseye/qade/commit/51223cb6dbc162349a25330b0eda484899dd2698))
+
+- Validate GameInfo and action names, accept float scores, build run state before setup
+  ([`b14547c`](https://github.com/krosseye/qade/commit/b14547c52e38702fbb4868c60b24e1adfbd7179a))
+
+### Build System
+
+- Add a Docker image for Linux builds
+  ([`b4a901c`](https://github.com/krosseye/qade/commit/b4a901cf637653160668667370c24022b054442f))
+
+- Leave unused Qt plugins, OpenSSL and SDL add-ons out of the exe
+  ([`c77a0b3`](https://github.com/krosseye/qade/commit/c77a0b38919b776c5bf5cdc850122473eac049fe))
+
+### Features
+
+- Build theme colours in OKLCH so every accent stays readable
+  ([`9df0f8f`](https://github.com/krosseye/qade/commit/9df0f8f781b99139113f4c5d6013cfea9f1ffb27))
+
+- Derive HUD accent from GameInfo accent
+  ([`6a71a68`](https://github.com/krosseye/qade/commit/6a71a6802c32d8fe4820bbda905c61a218caa7a0))
+
+- Give each game its own rng and keep engine effects off the global random
+  ([`99c7629`](https://github.com/krosseye/qade/commit/99c76295b4eb5daa899e83abca77f0445a016262))
+
+
 ## v0.5.0 (2026-11-21)
 
 ### Chores
