@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v0.5.0 (2026-11-21)
+
+### Chores
+
+- Tidy up startup log output
+  ([`9d641ba`](https://github.com/krosseye/qade/commit/9d641baeb512fa0a140d33c757f3c3c9cb497356))
+
+### Features
+
+- Add boarded_up
+  ([`b72288c`](https://github.com/krosseye/qade/commit/b72288c3a0ed10837fc35a3eb7002972cbd72dec))
+
+
 ## v0.4.1 (2026-11-21)
 
 ### Bug Fixes
