@@ -146,7 +146,8 @@ class ArcadeGame:
             on their own outside play; during play, call ``starfield.scroll``
             in ``step_playing`` to move them.
         sounds: The sound bus, or None when sound effects are off or headless.
-        score: This run's score.
+        score: This run's score. It may be a float; it shows and saves
+            rounded down.
         elapsed: Seconds of play this run.
         high_score: The best score so far.
         is_new_high_score: Whether this run set the high score.
@@ -227,9 +228,14 @@ class ArcadeGame:
             timeouts={Phase.GAME_OVER: self.GAME_OVER_IDLE_TIMEOUT},
             on_change=self._on_phase_change,
         )
-        # Last, so the hooks see a fully built game.
+        self._clear_run()
         self.setup()
-        self._new_run()
+        self.reset()
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+        if not isinstance(getattr(cls, "INFO", None), GameInfo):
+            raise TypeError(f"{cls.__name__} needs INFO = GameInfo(...)")
 
     def build_input_map(self) -> InputMap:
         """Hook: the game's own actions.
@@ -307,8 +313,8 @@ class ArcadeGame:
         """
         theme = current_theme()
         return [
-            HudRow("SCORE", f"{self.score:06d}", theme.accent),
-            HudRow("BEST", f"{self.high_score:06d}", theme.highlight),
+            HudRow("SCORE", f"{int(self.score):06d}", theme.accent),
+            HudRow("BEST", f"{int(self.high_score):06d}", theme.highlight),
             HudRow("TIME", format_clock(self.elapsed), theme.text),
         ]
 
@@ -382,13 +388,16 @@ class ArcadeGame:
             self.high_score_store.save(self.high_score)
 
     def _new_run(self):
+        self._clear_run()
+        self.reset()
+
+    def _clear_run(self):
         width, height = self.CANVAS_SIZE
         self.starfield = StarField(width, height, self.NUM_STARS)
         self.particles.clear()
         self.score = 0
         self.is_new_high_score = False
         self.elapsed = 0.0
-        self.reset()
 
     def start(self) -> None:
         """Acquires music, the intro and sound effects, as the settings allow."""

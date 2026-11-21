@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The contract between the host and whatever it runs: a game, or a launcher."""
 
+import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Protocol
@@ -11,6 +12,8 @@ from qade_engine.graphics.viewport import Viewport
 from qade_engine.input.input_map import InputMap
 from qade_engine.input.state import ActionState
 from qade_engine.perf import PerfStats
+
+_SAFE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
 
 
 @dataclass(frozen=True)
@@ -26,7 +29,8 @@ class GameInfo:
             uses the theme's.
 
     Raises:
-        ValueError: ``accent`` is set but isn't a color.
+        ValueError: ``id`` isn't filesystem-safe, or ``accent`` is set but
+            isn't a color.
     """
 
     id: str
@@ -36,6 +40,8 @@ class GameInfo:
     accent: str = ""
 
     def __post_init__(self) -> None:
+        if not _SAFE_ID.fullmatch(self.id):
+            raise ValueError(f"game id {self.id!r} must be letters, digits, _ or -")
         if self.accent and not QColor(self.accent).isValid():
             raise ValueError(f"{self.id}: accent {self.accent!r} is not a color")
 

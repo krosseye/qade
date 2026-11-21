@@ -211,6 +211,9 @@ SCREEN_HELPERS: dict[str, Callable[[QPainter], None]] = {
     "game_over": lambda p: draw_game_over(
         p, VIEW, "OVER", "AGAIN", 999_999_999, 0, False
     ),
+    "game_over_float_score": lambda p: draw_game_over(
+        p, VIEW, "OVER", "AGAIN", 12.7, 3.5, False
+    ),
     "hud": lambda p: draw_hud(p, VIEW, ROWS, PerfStats(show_details=True)),
     "hud_no_rows": lambda p: draw_hud(p, VIEW, [], PerfStats()),
     "hud_panel": lambda p: draw_hud_panel(p, 0, 0, 200, "SYS", ROWS),

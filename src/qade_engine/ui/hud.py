@@ -173,10 +173,10 @@ def draw_game_over(
     center_y = viewport.height / 2
 
     if is_new_high_score:
-        score_text = f"NEW HIGH SCORE: {high_score:06d}"
+        score_text = f"NEW HIGH SCORE: {int(high_score):06d}"
         score_color = theme.highlight
     else:
-        score_text = f"SCORE {score:06d}   BEST {high_score:06d}"
+        score_text = f"SCORE {int(score):06d}   BEST {int(high_score):06d}"
         score_color = theme.accent
 
     make_font(painter, 14)

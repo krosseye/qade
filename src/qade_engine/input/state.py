@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Which actions are held, and which were just pressed."""
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 
 
 class ActionState:
@@ -11,6 +11,22 @@ class ActionState:
         """Creates a state with nothing held."""
         self._strengths: dict[str, float] = {}
         self._presses: set[str] = set()
+        self._known: frozenset[str] | None = None
+
+    def expect(self, actions: Iterable[str]) -> None:
+        """Names every action, so reading any other raises ``KeyError``.
+
+        The host calls this when it switches apps. Until then any name reads
+        as not held, so headless tests can apply just the actions they need.
+
+        Args:
+            actions: The running app's action names.
+        """
+        self._known = frozenset(actions)
+
+    def _check(self, action: str) -> None:
+        if self._known is not None and action not in self._known:
+            raise KeyError(f"no action named {action!r} in the input map")
 
     def is_pressed(self, action: str) -> bool:
         """Whether an action is held.
@@ -20,7 +36,11 @@ class ActionState:
 
         Returns:
             True while it is held.
+
+        Raises:
+            KeyError: The input map has no such action.
         """
+        self._check(action)
         return self._strengths.get(action, 0.0) > 0.0
 
     def was_pressed(self, action: str) -> bool:
@@ -34,7 +54,11 @@ class ActionState:
 
         Returns:
             True if it was pressed, even if released again since.
+
+        Raises:
+            KeyError: The input map has no such action.
         """
+        self._check(action)
         return action in self._presses
 
     def strength(self, action: str) -> float:
@@ -45,7 +69,11 @@ class ActionState:
 
         Returns:
             Its strength, from 0 to 1.
+
+        Raises:
+            KeyError: The input map has no such action.
         """
+        self._check(action)
         return self._strengths.get(action, 0.0)
 
     def apply(self, strengths: Mapping[str, float]) -> list[str]:

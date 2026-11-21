@@ -12,7 +12,7 @@ from PySide6.QtCore import QCoreApplication, QTimer
 from PySide6.QtGui import QColor
 from support import FakeApp, ProbeGame, define, run_for, to_playing
 
-from qade_engine import Event, HighScoreStore, Phase
+from qade_engine import ArcadeGame, Event, HighScoreStore, Phase
 from qade_engine.graphics import current_theme
 from qade_engine.graphics.palette import WHITE
 from qade_engine.graphics.particles import ParticleEffect, ParticleSystem, Shape
@@ -551,3 +551,38 @@ def test_the_theme_takes_each_apps_accent_and_keeps_it_if_the_next_fails(host):
     with pytest.raises(RuntimeError):
         host.switch_to(tinted("#ff0000", broken))
     assert oklch(current_theme().accent)[2] == purple
+
+
+# --- Game contract --------------------------------------------------------------
+
+
+def test_setup_sees_this_runs_state(services, store):
+    class Early(ProbeGame):
+        def setup(self) -> None:
+            super().setup()
+            self.seen = (self.score, self.elapsed, len(self.starfield.stars))
+
+    game = Early(services, high_score_store=store)
+    assert game.seen == (0, 0.0, game.NUM_STARS)
+    game.stop()
+
+
+def test_a_float_score_shows_and_saves_rounded_down(game, store):
+    to_playing(game)
+    game.score += 12.7
+    assert [row.value for row in game.hud_rows()][:2] == ["000012", "000000"]
+    game.died()
+    assert store.load() == 12
+
+
+@pytest.mark.parametrize("bad", ["", ".", "..", "../x", "a/b", "a\b", "-x", "a b"])
+def test_a_game_id_that_could_leave_the_save_folder_is_refused(bad):
+    with pytest.raises(ValueError, match="game id"):
+        GameInfo(bad, "T", "qade_engine")
+
+
+def test_a_game_without_info_fails_when_defined():
+    with pytest.raises(TypeError, match="NoInfo needs INFO"):
+
+        class NoInfo(ArcadeGame):
+            pass

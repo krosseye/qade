@@ -417,3 +417,14 @@ def test_default_bindings_cover_pad_start_for_both_pause_and_confirm():
     strengths = m.evaluate(devices)
     assert strengths[UIAction.PAUSE] == strengths[UIAction.CONFIRM] == 1.0
     assert PadButton(GamepadButton.START).strength(devices) == 1.0
+
+
+def test_a_misspelt_action_raises_once_the_host_applies_a_map(rig):
+    manager, _, _ = rig
+    state = manager.state
+    assert not state.is_pressed("jmup")
+    manager.set_input_map(steering_map())
+    assert not state.is_pressed("left")
+    for read in (state.is_pressed, state.was_pressed, state.strength):
+        with pytest.raises(KeyError, match="jmup"):
+            read("jmup")

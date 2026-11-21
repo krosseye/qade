@@ -82,7 +82,9 @@ class InputManager(QObject):
         """
         self.input_map = input_map
         devices = DeviceState(frozenset(self._held_keys), self._pad)
-        self.state.apply(input_map.evaluate(devices))
+        strengths = input_map.evaluate(devices)
+        self.state.expect(strengths)
+        self.state.apply(strengths)
         self.state.clear_presses()
 
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
