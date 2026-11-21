@@ -1,12 +1,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The QADE launcher: one window, a menu of games, and back again on quit."""
 
+from boarded_up import GAME as BOARDED_UP
 from grizzly_depths import GAME as GRIZZLY_DEPTHS
 from qade_engine import GameDefinition, GameInfo, Services
 
 from .launcher import Launcher, LauncherMemory
 
-GAMES: tuple[GameDefinition, ...] = (GRIZZLY_DEPTHS,)
+GAMES: tuple[GameDefinition, ...] = (BOARDED_UP, GRIZZLY_DEPTHS)
 
 INFO = GameInfo(
     id="qade_launcher",
