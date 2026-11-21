@@ -7,6 +7,7 @@ import os
 import sys
 from logging.handlers import RotatingFileHandler
 
+from PySide6.QtCore import QLoggingCategory
 from PySide6.QtWidgets import QApplication
 
 from qade_engine.diagnostics import log_system_info
@@ -28,7 +29,13 @@ def start_logging() -> None:
     """
     handlers: list[logging.Handler] = []
     if sys.stderr is not None:
-        handlers.append(logging.StreamHandler())
+        console = logging.StreamHandler()
+        console.setFormatter(
+            logging.Formatter(
+                "%(asctime)s %(levelname)s %(name)s: %(message)s", "%H:%M:%S"
+            )
+        )
+        handlers.append(console)
     try:
         SAVE_ROOT.mkdir(parents=True, exist_ok=True)
         handlers.append(
@@ -46,6 +53,7 @@ def start_logging() -> None:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
         handlers=handlers,
     )
+    QLoggingCategory.setFilterRules("qt.multimedia.ffmpeg.info=false")
     sys.excepthook = lambda *exc_info: _log.critical(
         "uncaught exception", exc_info=exc_info
     )

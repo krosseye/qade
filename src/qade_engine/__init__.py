@@ -6,6 +6,10 @@ A game is a package that exports a ``GameDefinition``. Most games subclass
 own window.
 """
 
+import warnings
+
+warnings.filterwarnings("ignore", "Using SDL2 binaries from pysdl2-dll")
+
 from .arcade import ArcadeGame, Event, Phase
 from .host import App, Frame, GameDefinition, GameInfo, Services, run
 from .persistence import HighScoreStore

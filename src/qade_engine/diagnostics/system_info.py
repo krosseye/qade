@@ -214,12 +214,13 @@ def collect_system_info(
 
 
 def log_system_info(use_hardware: bool = True) -> None:
-    """Collects diagnostics and logs them, one line per value.
+    """Collects diagnostics and logs them as one record, a line per value.
 
     Args:
         use_hardware: Whether OpenGL rendering was requested.
     """
+    lines = ["system info"]
     for section, items in collect_system_info(use_hardware).items():
-        _log.info("[%s]", section)
-        for label, value in items.items():
-            _log.info("  %s: %s", label, value)
+        lines.append(f"  [{section}]")
+        lines += (f"    {label}: {value}" for label, value in items.items())
+    _log.info("\n".join(lines))
