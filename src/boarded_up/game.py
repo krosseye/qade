@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Boarded Up: hold the house against the horde, round after round."""
 
-import random
-
 from PySide6.QtCore import QPointF, QRectF
 
 from qade_engine import ArcadeGame, Frame, Phase
@@ -108,9 +106,6 @@ class BoardedUp(ArcadeGame):
 
     def build_input_map(self) -> InputMap:
         return controls.input_map()
-
-    def setup(self) -> None:
-        self.rng = random.Random()
 
     def reset(self) -> None:
         self.sim = Sim(build_house(self.rng), self.rng)

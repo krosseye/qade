@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Grizzly Depths: find the way out of the maze before the bear finds you."""
 
-import random
 from math import atan2, degrees, hypot
 
 from PySide6.QtCore import QRectF
@@ -76,9 +75,6 @@ class GrizzlyDepths(ArcadeGame):
 
     def build_input_map(self) -> InputMap:
         return controls.input_map()
-
-    def setup(self) -> None:
-        self.rng = random.Random()
 
     def reset(self) -> None:
         self._start_level(1)

@@ -184,6 +184,7 @@ class ParticleSystem:
         self.budget = budget
         self.items: list[Particle] = []
         self._free: list[Particle] = []
+        self._rng = random.Random()
 
     def clear(self) -> None:
         """Removes every particle."""
@@ -221,19 +222,21 @@ class ParticleSystem:
 
     def _spawn(self, effect, x, y, heading, anchor) -> Particle:
         half_spread = effect.spread / 2
-        direction = math.radians(heading + random.uniform(-half_spread, half_spread))
-        speed = random.uniform(*effect.speed)
+        direction = math.radians(heading + self._rng.uniform(-half_spread, half_spread))
+        speed = self._rng.uniform(*effect.speed)
 
         p = self._free.pop() if self._free else Particle()
         p.effect = effect
         p.anchor = anchor
-        p.shape = random.choice(effect.shapes)
+        p.shape = self._rng.choice(effect.shapes)
         p.x, p.y = x, y
         p.vx, p.vy = math.sin(direction) * speed, -math.cos(direction) * speed
-        p.life = p.max_life = random.uniform(*effect.life)
-        p.size = random.uniform(*effect.size)
-        p.angle = random.uniform(0, math.tau)
-        p.spin = math.radians(random.uniform(*effect.spin)) * random.choice((-1, 1))
+        p.life = p.max_life = self._rng.uniform(*effect.life)
+        p.size = self._rng.uniform(*effect.size)
+        p.angle = self._rng.uniform(0, math.tau)
+        p.spin = math.radians(self._rng.uniform(*effect.spin)) * self._rng.choice(
+            (-1, 1)
+        )
         return p
 
     def update(self, dt: float) -> None:

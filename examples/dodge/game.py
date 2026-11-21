@@ -1,4 +1,3 @@
-import random
 from enum import StrEnum
 
 from PySide6.QtCore import QRectF, Qt
@@ -58,7 +57,7 @@ class Dodge(ArcadeGame):
         self.spawn_timer -= dt
         if self.spawn_timer <= 0:
             self.spawn_timer += SPAWN_INTERVAL
-            x = random.uniform(0, self.field.width - BLOCK_SIZE)
+            x = self.rng.uniform(0, self.field.width - BLOCK_SIZE)
             self.blocks.append(QRectF(x, -BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
 
         for block in self.blocks:

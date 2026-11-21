@@ -21,18 +21,19 @@ class Star:
         color: One of ``COLORS``.
     """
 
-    def __init__(self, width, height):
+    def __init__(self, width, height, rng: random.Random):
         """Places a star at random on a canvas.
 
         Args:
             width: Canvas width.
             height: Canvas height.
+            rng: Where the placement comes from.
         """
-        self.x = random.uniform(0, width)
-        self.y = random.uniform(0, height)
-        self.size = random.uniform(1, 4)
-        self.speed = random.uniform(0.1, 0.5)
-        self.color = random.choice(COLORS)
+        self.x = rng.uniform(0, width)
+        self.y = rng.uniform(0, height)
+        self.size = rng.uniform(1, 4)
+        self.speed = rng.uniform(0.1, 0.5)
+        self.color = rng.choice(COLORS)
 
     def draw(self, painter, x, y):
         """Fills the star with the painter's brush.
@@ -64,7 +65,8 @@ class StarField:
         """
         self.width = width
         self.height = height
-        self.stars = [Star(width, height) for _ in range(count)]
+        rng = random.Random()
+        self.stars = [Star(width, height, rng) for _ in range(count)]
         self._by_color = [
             (color, [star for star in self.stars if star.color is color])
             for color in COLORS

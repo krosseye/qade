@@ -2,6 +2,7 @@
 """The standard arcade game that most QADE games are built on."""
 
 import logging
+import random
 from dataclasses import replace
 from enum import Enum, auto
 
@@ -135,6 +136,9 @@ class ArcadeGame:
         services: What the host provides.
         actions: Held input, for steps to read.
         field: The play area, in canvas units.
+        rng: The game's random numbers, for gameplay and level building.
+            Use it rather than the ``random`` module: engine systems such as
+            particles keep their own, so they never change what it draws.
         particles: Visual-only particles. Only ``step_aftermath`` updates
             them by default: call ``particles.update(dt)`` in ``step_playing``
             and ``particles.draw(painter)`` in ``draw_world``.
@@ -199,6 +203,7 @@ class ArcadeGame:
             self.build_input_map(), never_confirm=self.NEVER_CONFIRM
         )
         self.tick_count = 0
+        self.rng = random.Random()
 
         self.high_score_store = high_score_store or HighScoreStore.for_game(
             self.INFO.id

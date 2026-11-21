@@ -469,12 +469,19 @@ def test_drag_never_reverses_even_with_a_long_step():
 # --- Starfield --------------------------------------------------------------------
 
 
-def test_starfield_is_reproducible_under_a_seed():
+def test_engine_effects_leave_the_global_random_alone(game):
+    """Stars and particles draw from their own rng, so however many explosions
+    a run shows, the numbers its gameplay draws stay the same."""
     random.seed(99)
-    a = [(s.x, s.y, s.size) for s in StarField(800, 600, 50).stars]
-    random.seed(99)
-    b = [(s.x, s.y, s.size) for s in StarField(800, 600, 50).stars]
-    assert a == b
+    before = random.getstate()
+    to_playing(game)
+    game.particles.emit((DOT, DOT), 0, 0, scale=40.0)
+    assert game.particles.items
+    run_for(game, 0.5)
+    game.died()
+    game.send(Event.CONFIRM)  # a fresh run rebuilds the starfield
+    run_for(game, game.GAMEPLAY_FADE_TIME * 2)
+    assert random.getstate() == before
 
 
 @pytest.mark.parametrize(
