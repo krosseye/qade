@@ -10,9 +10,11 @@ import argparse
 import importlib
 import os
 import platform
+import re
 from importlib.metadata import version
 
 import PyInstaller.__main__
+from PyInstaller.building import build_main
 
 from qade_engine import GameDefinition
 from qade_engine.diagnostics import sys_architecture
@@ -27,6 +29,44 @@ TARGET = f"{PLATFORM}-{ARCHITECTURE}"
 BUILD_DIR = os.path.join(PROJECT_DIR, "build")
 DIST_DIR = os.path.join(BUILD_DIR, "bin", TARGET)
 DEFAULT_PACKAGE = "qade_launcher"
+
+UNUSED = re.compile(
+    r"""
+      # The virtual keyboard input plugin, and the Quick/Qml it needs.
+      PySide6/(Qt/)?plugins/platforminputcontexts/(lib)?qtvirtualkeyboardplugin\.
+    | PySide6/(Qt/lib/lib)?Qt6(VirtualKeyboard|Quick|Qml\w*)\.
+      # Image formats beyond the built-in PNG, except .ico for the icon.
+    | PySide6/(Qt/)?plugins/imageformats/(lib)?q(gif|icns|jpeg|pdf|svg|tga|tiff|wbmp|webp)\.
+    | PySide6/(Qt/lib/lib)?Qt6Pdf\.
+    | PySide6/(Qt/)?plugins/platforms/(lib)?q(direct2d|minimal)\.
+    | PySide6/(Qt/)?plugins/(generic|iconengines|styles|networkinformation)/
+      # TLS, and the OpenSSL it loads.
+    | PySide6/(Qt/)?plugins/tls/
+    | lib(crypto|ssl)[-.]
+    | PySide6/(Qt/)?translations/
+      # SDL add-ons other than the mixer and the codecs it links to.
+    | sdl2dll/dll/(lib)?(SDL2_(ttf|image|gfx)|avif|dav1d|tiff|webp)
+    """,
+    re.VERBOSE,
+)
+UNUSED_MODULES = ["ssl", "_ssl", "_hashlib"]
+
+
+class TrimmedAnalysis(build_main.Analysis):
+    """Analysis without the ``UNUSED`` files."""
+
+    dropped = 0
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for kind in ("binaries", "datas"):
+            entries = getattr(self, kind)
+            kept = [e for e in entries if not UNUSED.match(e[0].replace("\\", "/"))]
+            TrimmedAnalysis.dropped += len(entries) - len(kept)
+            setattr(self, kind, kept)
+
+
+build_main.Analysis = TrimmedAnalysis
 
 
 def definitions(package: str) -> list[GameDefinition]:
@@ -96,12 +136,18 @@ def build(package: str) -> None:
             *resource_data(packages),
             "--collect-all",
             "sdl2dll",
+            *(arg for module in UNUSED_MODULES for arg in ("--exclude-module", module)),
             "--onefile",
             "--clean",
             "--noconfirm",
             "--windowed",
         ]
     )
+    if not TrimmedAnalysis.dropped:
+        raise SystemExit(
+            "PyInstaller bypassed TrimmedAnalysis, so nothing was left out"
+        )
+    print(f"Left out {TrimmedAnalysis.dropped} unused files")
 
 
 def main() -> None:

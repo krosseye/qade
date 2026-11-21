@@ -35,8 +35,9 @@ dev = [
   "prek>=0.5.10",
   "pytest>=9.2.0",
   "python-semantic-release>=10.7.0",
-  "pyinstaller>=6.22.3",
+  { include-group = "build" },
 ]
+build = ["pyinstaller>=6.22.3"]
 docs = ["mkdocstrings[python]>=1.0.8", "zensical>=0.1.1"]
 
 
