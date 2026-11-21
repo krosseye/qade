@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v0.4.1 (2026-11-21)
+
+### Bug Fixes
+
+- Validate accent colour in GameInfo instead of the launcher
+  ([`9484476`](https://github.com/krosseye/qade/commit/9484476ce23adea0f673aae7f2498614a13bf953))
+
+### Continuous Integration
+
+- Add build script
+  ([`c903435`](https://github.com/krosseye/qade/commit/c903435f468332c6b15cf032bbd2c48ea1790d79))
+
+### Refactoring
+
+- Play sound effects and music through SDL2_mixer
+  ([`bb1ca15`](https://github.com/krosseye/qade/commit/bb1ca153c9fe00eea48b83b9017b61de79ee8dc5))
+
+
 ## v0.4.0 (2026-11-18)
 
 ### Features
