@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Baked sound on disk: the WAV files QSoundEffect plays."""
+"""Baked sound as WAV: in memory for effects, on disk for songs."""
 
-import hashlib
+import io
 import os
 import wave
 from pathlib import Path
@@ -13,6 +13,17 @@ from qade_engine.persistence import SAVE_ROOT
 from .synth import RATE
 
 DEFAULT_CACHE = SAVE_ROOT / "sfx_cache"
+
+
+def wav_bytes(pcm: np.ndarray) -> bytes:
+    """Mono 16-bit samples at ``RATE``, as a whole WAV file."""
+    buffer = io.BytesIO()
+    with wave.open(buffer, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(RATE)
+        w.writeframes(pcm.astype(np.int16).tobytes())
+    return buffer.getvalue()
 
 
 def write_wav(pcm: np.ndarray, path: Path) -> None:
@@ -28,32 +39,8 @@ def write_wav(pcm: np.ndarray, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     partial = path.with_suffix(f".{os.getpid()}.part")
     try:
-        with wave.open(str(partial), "wb") as w:
-            w.setnchannels(1)
-            w.setsampwidth(2)
-            w.setframerate(RATE)
-            w.writeframes(pcm.astype(np.int16).tobytes())
+        partial.write_bytes(wav_bytes(pcm))
         os.replace(partial, path)
     except OSError:
         partial.unlink(missing_ok=True)
         raise
-
-
-def cached_wav(pcm: np.ndarray, cache_dir: Path) -> Path:
-    """The cached WAV holding these samples, written if it isn't there yet.
-
-    Args:
-        pcm: Mono 16-bit samples at ``RATE``.
-        cache_dir: Where baked sound is kept.
-
-    Returns:
-        The file, named by a hash of the samples.
-
-    Raises:
-        OSError: The file can't be written.
-    """
-    data = pcm.astype(np.int16).tobytes()
-    path = cache_dir / f"{hashlib.sha1(data).hexdigest()}.wav"
-    if not path.exists():
-        write_wav(pcm, path)
-    return path

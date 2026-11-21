@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Realtime sound effects through small pools of QSoundEffect voices."""
+"""Realtime sound effects, each voice on its own SDL_mixer channel."""
 
 import logging
 import math
@@ -7,18 +7,13 @@ import random
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from pathlib import Path
 
-import numpy as np
-from PySide6.QtCore import QObject, QUrl
-from PySide6.QtMultimedia import QSoundEffect
+from sdl2 import sdlmixer as mix
 
 from qade_engine.core import clamp
 
-from .cache import DEFAULT_CACHE, cached_wav
+from . import device
 from .synth import RATE, Sound, bake, layers
-
-_FOREVER = QSoundEffect.Loop.Infinite.value
 
 _log = logging.getLogger(__name__)
 
@@ -35,14 +30,15 @@ class _Sound:
 
 @dataclass(eq=False, slots=True)
 class _Voice:
-    effect: QSoundEffect
+    chunk: object
+    channel: int
     duration: float
     sound: _Sound
     start: float = 0.0
     end: float = 0.0  # 0 = idle, inf = looping until stopped
 
 
-class SoundBus(QObject):
+class SoundBus:
     """Plays registered sounds by name.
 
     ``ArcadeGame`` creates one and hands it to ``register_sounds``; other
@@ -57,27 +53,23 @@ class SoundBus(QObject):
         self,
         max_voices: int = 5,
         clock: Callable[[], float] = time.monotonic,
-        cache_dir: Path = DEFAULT_CACHE,
     ):
         """Creates an empty bus.
 
         Args:
             max_voices: Sounds audible at once.
             clock: Returns seconds, for gaps and voice ages.
-            cache_dir: Where baked WAVs are kept.
 
         Raises:
-            OSError: The cache folder can't be created.
+            OSError: There's no audio device.
         """
-        super().__init__()
-        self._cache = cache_dir
-        self._cache.mkdir(parents=True, exist_ok=True)
+        if not device.available():
+            raise OSError("no audio device")
         self._sounds: dict[str, _Sound] = {}
         self._voices: list[_Voice] = []
         self._max = max_voices
         self._now = clock
         self._warned: set[str] = set()
-        self._reported_failure = False
         # Its own generator: drawing from the global one would shift a game's
         # random sequence depending on whether sound effects are on.
         self._rng = random.Random()
@@ -108,7 +100,7 @@ class SoundBus(QObject):
 
         Raises:
             ValueError: The name is taken, or a looping sound has layers.
-            OSError: A baked WAV can't be written to the cache.
+            OSError: The mixer can't load the baked sound.
         """
         if name in self._sounds:
             raise ValueError(f"sound {name!r} is already registered")
@@ -127,23 +119,11 @@ class SoundBus(QObject):
         registered = _Sound(gap, priority, loop)
         for pitch in pitches:
             pcm = bake(sound, pitch)
-            effect = QSoundEffect(self)
-            effect.statusChanged.connect(self._report_failure)
-            effect.setSource(self._url(pcm))
-            if loop:
-                effect.setLoopCount(_FOREVER)
-            voice = _Voice(effect, len(pcm) / RATE, registered)
+            chunk = device.load_chunk(pcm)
+            voice = _Voice(chunk, device.take_channel(), len(pcm) / RATE, registered)
             registered.voices.append(voice)
             self._voices.append(voice)
         self._sounds[name] = registered
-
-    def _report_failure(self) -> None:
-        """Logs the first voice that fails to load. The game plays on silently."""
-        if self._reported_failure:
-            return
-        if any(v.effect.status() == QSoundEffect.Status.Error for v in self._voices):
-            self._reported_failure = True
-            _log.error("sound effects unavailable (no audio device?)")
 
     def play(self, name: str, step: int | None = None, vol: float = 1.0) -> bool:
         """Triggers a sound. A looping sound plays until stopped.
@@ -169,16 +149,15 @@ class SoundBus(QObject):
             return False
 
         voice = self._pick_voice(sound, step, now)
-        if voice.effect.status() == QSoundEffect.Status.Error:
+        if voice.end <= now and not self._make_room(sound.priority, now):
             return False
-        if voice.end > now:
-            voice.effect.stop()  # a retrigger: no more voices become audible
-        elif not self._make_room(sound.priority, now):
+        mix.Mix_Volume(voice.channel, round(clamp(vol, 0.0, 1.0) * mix.MIX_MAX_VOLUME))
+        if mix.Mix_PlayChannel(voice.channel, voice.chunk, -1 if sound.loop else 0) < 0:
+            _log.warning("play(%r): %s", name, device.error())
+            voice.end = 0.0
             return False
         voice.start = now
         voice.end = math.inf if sound.loop else now + voice.duration
-        voice.effect.setVolume(clamp(vol, 0.0, 1.0))
-        voice.effect.play()
         sound.last, sound.last_voice = now, voice
         return True
 
@@ -207,9 +186,9 @@ class SoundBus(QObject):
 
     def close(self) -> None:
         """Stops everything and releases every voice, leaving the bus empty."""
-        self.stop_all()
         for voice in self._voices:
-            voice.effect.deleteLater()
+            device.release_channel(voice.channel)
+            mix.Mix_FreeChunk(voice.chunk)
         self._voices.clear()
         self._sounds.clear()
 
@@ -247,11 +226,8 @@ class SoundBus(QObject):
         return True
 
     def _silence(self, voice: _Voice) -> None:
-        voice.effect.stop()
+        mix.Mix_HaltChannel(voice.channel)
         voice.end = 0.0
-
-    def _url(self, pcm: np.ndarray) -> QUrl:
-        return QUrl.fromLocalFile(str(cached_wav(pcm, self._cache)))
 
 
 def open_bus(register: Callable[[SoundBus], None]) -> SoundBus | None:
@@ -261,13 +237,18 @@ def open_bus(register: Callable[[SoundBus], None]) -> SoundBus | None:
         register: Registers the sounds, such as ``ArcadeGame.register_sounds``.
 
     Returns:
-        The bus, or None if the sounds can't be written to the cache,
+        The bus, or None if there's no audio device or a sound won't load,
         so the app plays on without sound effects.
     """
     try:
         bus = SoundBus()
+    except OSError as exc:
+        _log.error("sound effects off: %s", exc)
+        return None
+    try:
         register(bus)
     except OSError as exc:
-        _log.error("sound effects off, cannot write the sound cache: %s", exc)
+        bus.close()
+        _log.error("sound effects off: %s", exc)
         return None
     return bus

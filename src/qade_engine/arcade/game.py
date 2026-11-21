@@ -410,7 +410,7 @@ class ArcadeGame:
         self._started = False
         self._sting = None
         if self._music is not None:
-            self._music.stop()
+            self._music.close()
         if self._intro is not None:
             self._intro.stop()
         if self.sounds is not None:
@@ -449,16 +449,15 @@ class ArcadeGame:
     def _load_music(self, song: Song | None) -> None:
         """Replaces the loaded track with ``song``."""
         if self._music is not None:
-            self._music.stop()
+            self._music.close()
         self._music = None
         if not (self._started and song and self.services.settings.music):
             return
         try:
             path = song_path(song, DEFAULT_CACHE)
+            self._music = MusicTrack(path, volume=self.MUSIC_VOLUME, loop=song.loop)
         except OSError as exc:
-            _log.warning("can't bake %s, playing without it: %s", song.name, exc)
-            return
-        self._music = MusicTrack(path, volume=self.MUSIC_VOLUME, loop=song.loop)
+            _log.warning("can't play %s, going without it: %s", song.name, exc)
 
     def play_sound(self, name: str, step: int | None = None, vol: float = 1.0) -> None:
         """Plays a registered sound. Does nothing when sound effects are off.

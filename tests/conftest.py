@@ -5,6 +5,7 @@ import os
 
 # Before any PySide6 import, which reads it.
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
 import random
 from collections.abc import Iterator
