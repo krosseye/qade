@@ -6,9 +6,13 @@ A game is a package that exports a ``GameDefinition``. Most games subclass
 own window.
 """
 
+import os
 import warnings
 
 warnings.filterwarnings("ignore", "Using SDL2 binaries from pysdl2-dll")
+# SDL otherwise turns SIGINT/SIGTERM into quit events nobody reads, so the
+# game can't be stopped with Ctrl+C, kill, or logout.
+os.environ.setdefault("SDL_NO_SIGNAL_HANDLERS", "1")
 
 from .arcade import ArcadeGame, Event, Phase
 from .host import App, Frame, GameDefinition, GameInfo, Services, run
