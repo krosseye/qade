@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.7.0 (2026-11-21)
+
+### Features
+
+- Add Smoothed for drawing motion between fixed steps
+  ([`76c2bc1`](https://github.com/krosseye/qade/commit/76c2bc1dd76167a1cda6820e01da6032cd793df0))
+
+
 ## v0.6.0 (2026-11-21)
 
 ### Bug Fixes
