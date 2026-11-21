@@ -17,6 +17,7 @@ from qade_engine.graphics import current_theme
 from qade_engine.graphics.palette import WHITE
 from qade_engine.graphics.particles import ParticleEffect, ParticleSystem, Shape
 from qade_engine.graphics.starfield import StarField
+from qade_engine.graphics.theme import oklch
 from qade_engine.host.app import GameDefinition, GameInfo, Services
 from qade_engine.input import InputMap
 
@@ -497,15 +498,15 @@ def test_the_theme_takes_each_apps_accent_and_keeps_it_if_the_next_fails(host):
         )  # type: ignore[arg-type]
 
     host.switch_to(tinted("#80de54"))
-    green = current_theme().accent.hsvHue()
+    green = oklch(current_theme().accent)[2]
     host.switch_to(tinted("#9678ff"))
-    purple = current_theme().accent.hsvHue()
-    assert abs(green - QColor("#80de54").hsvHue()) <= 2
-    assert abs(purple - QColor("#9678ff").hsvHue()) <= 2
+    purple = oklch(current_theme().accent)[2]
+    assert green == pytest.approx(oklch(QColor("#80de54"))[2], abs=2)
+    assert purple == pytest.approx(oklch(QColor("#9678ff"))[2], abs=2)
 
     def broken(services):
         raise RuntimeError("no")
 
     with pytest.raises(RuntimeError):
         host.switch_to(tinted("#ff0000", broken))
-    assert current_theme().accent.hsvHue() == purple
+    assert oklch(current_theme().accent)[2] == purple
