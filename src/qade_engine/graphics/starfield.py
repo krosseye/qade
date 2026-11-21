@@ -90,6 +90,10 @@ class StarField:
             star.x = (star.x + velocity_x * star.speed * dt) % self.width
             star.y = (star.y + velocity_y * star.speed * dt) % self.height
 
+    def hold(self):
+        """Keeps the stars still between frames until the next ``scroll``."""
+        self._velocity = (0.0, 0.0)
+
     def draw(self, painter, view_width, view_height, ahead=0.0):
         """Spreads the stars over the view. Each keeps its own size.
 

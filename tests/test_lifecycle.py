@@ -469,6 +469,40 @@ def test_drag_never_reverses_even_with_a_long_step():
 # --- Starfield --------------------------------------------------------------------
 
 
+class StarPainter:
+    """Records where a starfield draws its stars."""
+
+    def __init__(self):
+        self.spots: list[tuple[float, float]] = []
+
+    def setPen(self, pen):
+        pass
+
+    def setBrush(self, brush):
+        pass
+
+    def drawEllipse(self, rect):
+        self.spots.append((rect.x(), rect.y()))
+
+
+def star_spots(field: StarField, ahead: float) -> list[tuple[float, float]]:
+    painter = StarPainter()
+    field.draw(painter, 800, 600, ahead)
+    return painter.spots
+
+
+def test_stars_left_unscrolled_stay_still_between_steps(game):
+    """The first run follows the intro's drift, and a pause follows play:
+    neither may carry its velocity into frames that don't scroll."""
+    to_playing(game)  # ProbeGame never scrolls during play
+    run_for(game, game.dt)
+    assert star_spots(game.starfield, 0) == star_spots(game.starfield, game.dt)
+    game.starfield.scroll(0, -480, game.dt)
+    assert game.send(Event.PAUSE)
+    run_for(game, game.dt)
+    assert star_spots(game.starfield, 0) == star_spots(game.starfield, game.dt)
+
+
 def test_engine_effects_leave_the_global_random_alone(game):
     """Stars and particles draw from their own rng, so however many explosions
     a run shows, the numbers its gameplay draws stay the same."""

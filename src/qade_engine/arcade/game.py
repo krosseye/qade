@@ -524,6 +524,7 @@ class ArcadeGame:
         """
         self._fit_field()
         self.tick_count += 1
+        self.starfield.hold()
         self.flow.advance(dt)
         match self.phase:
             case Phase.PLAYING:
