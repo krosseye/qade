@@ -5,7 +5,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Protocol
 
-from PySide6.QtGui import QPainter
+from PySide6.QtGui import QColor, QPainter
 
 from qade_engine.graphics.viewport import Viewport
 from qade_engine.input.input_map import InputMap
@@ -24,6 +24,9 @@ class GameInfo:
         description: One line for a launcher.
         accent: A color name such as ``"#ffa500"`` for launcher art. Empty
             uses the theme's.
+
+    Raises:
+        ValueError: ``accent`` is set but isn't a color.
     """
 
     id: str
@@ -31,6 +34,10 @@ class GameInfo:
     package: str
     description: str = ""
     accent: str = ""
+
+    def __post_init__(self) -> None:
+        if self.accent and not QColor(self.accent).isValid():
+            raise ValueError(f"{self.id}: accent {self.accent!r} is not a color")
 
 
 @dataclass(frozen=True)

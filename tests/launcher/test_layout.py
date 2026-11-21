@@ -53,9 +53,9 @@ def test_cabinet_accents_follow_the_game_then_the_theme_then_offline():
     assert units[2].cabinet.accent == OFFLINE_ACCENT
 
 
-def test_an_unparseable_accent_falls_back_to_the_theme():
-    units = build_units(games(1, accent="not-a-colour"))
-    assert units[0].cabinet.accent == current_theme().accent
+def test_an_unparseable_accent_is_rejected_by_the_engine():
+    with pytest.raises(ValueError, match="not a color"):
+        games(1, accent="not-a-colour")
 
 
 @pytest.mark.parametrize("yaw", [-45.0, 0.0, 30.0, 45.0, 180.0])

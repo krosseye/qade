@@ -45,9 +45,7 @@ def build_units(games: Sequence[GameDefinition]) -> list[Unit]:
         screen: Art
         if game is not None:
             info = game.info
-            accent = QColor(info.accent)
-            if not accent.isValid():
-                accent = current_theme().accent
+            accent = QColor(info.accent) if info.accent else current_theme().accent
             title = info.title
             screen = partial(art.screen, title, accent.name())
         else:
