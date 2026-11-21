@@ -1,0 +1,43 @@
+# Builds the Linux binaries into build/bin/linux-x64:
+#   docker build -f docker/Dockerfile.linux -t qade-linux-builder docker
+#   docker run --rm --volume="$(pwd):/app" qade-linux-builder              # launcher
+#   docker run --rm --volume="$(pwd):/app" qade-linux-builder boarded_up   # one game
+
+FROM almalinux:9
+
+COPY --from=ghcr.io/astral-sh/uv:0.8.15 /uv /usr/local/bin/uv
+
+ENV UV_PYTHON_INSTALL_DIR=/opt/uv/python \
+    UV_PROJECT_ENVIRONMENT=/opt/uv/venv \
+    UV_LINK_MODE=copy \
+    LD_LIBRARY_PATH=/opt/uv/python/current/lib
+
+RUN dnf install -y epel-release \
+    && dnf install -y \
+        binutils \
+        dbus-libs \
+        fontconfig \
+        libXrandr \
+        libwayland-cursor \
+        libxkbcommon \
+        libxkbcommon-x11 \
+        mesa-libEGL \
+        mesa-libGL \
+        pulseaudio-libs \
+        speech-dispatcher \
+        xcb-util \
+        xcb-util-cursor \
+        xcb-util-image \
+        xcb-util-keysyms \
+        xcb-util-renderutil \
+        xcb-util-wm \
+    && dnf clean all \
+    && uv python install 3.12 \
+    && ln -s /opt/uv/python/cpython-3.12.*-linux-x86_64-gnu /opt/uv/python/current \
+    # ~11 MB of symbols. Not PyInstaller's --strip (that breaks numpy's OpenBLAS).
+    && strip /opt/uv/python/current/lib/libpython3.12.so.1.0
+
+VOLUME /app/
+WORKDIR /app
+
+ENTRYPOINT ["uv", "run", "--frozen", "--no-default-groups", "--group", "build", "python", "build.py"]
