@@ -212,7 +212,7 @@ class BoardedUp(ArcadeGame):
             draw_zombie(painter, at, z)
         draw_player(painter, player, sim, now)
         draw_tracers(painter, self.tracers)
-        self.particles.draw(painter)
+        self.particles.draw(painter, alpha * self.dt)
         draw_popups(painter, self.popups)
         painter.restore()
 

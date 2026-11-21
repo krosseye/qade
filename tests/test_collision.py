@@ -88,14 +88,14 @@ def block_above_player(game: Dodge, gap: float) -> QRectF:
     ],
 )
 def test_overlap_boundary_is_strict(dodge, gap, dies):
-    dodge.blocks.append(block_above_player(dodge, gap))
+    dodge.drop_block(block_above_player(dodge, gap))
     dodge.step_playing(0.0)
     assert (dodge.phase is Phase.GAME_OVER) is dies
 
 
 def test_zero_size_hazard_never_collides(dodge):
     centre = dodge.player_rect().center()
-    dodge.blocks.append(QRectF(centre.x(), centre.y(), 0.0, 0.0))
+    dodge.drop_block(QRectF(centre.x(), centre.y(), 0.0, 0.0))
     dodge.step_playing(0.0)
     assert dodge.phase is Phase.PLAYING
 
@@ -112,7 +112,7 @@ def test_fixed_steps_prevent_tunneling_through_the_player(
     game = games[0]
     to_playing(game)
     game.spawn_timer = math.inf
-    game.blocks = [block_above_player(game, gap=1.0)]
+    game.drop_block(block_above_player(game, gap=1.0))
     for _ in range(200):
         clock.advance(frame_time)
         host.tick()
@@ -124,18 +124,18 @@ def test_fixed_steps_prevent_tunneling_through_the_player(
 def test_a_single_variable_step_would_tunnel(dodge):
     """Proves the fixed step is load-bearing: one 0.25 s step jumps clean over the player."""
     assert BLOCK_SPEED * 0.25 > BLOCK_SIZE + dodge.player_rect().height()
-    dodge.blocks.append(block_above_player(dodge, gap=1.0))
+    dodge.drop_block(block_above_player(dodge, gap=1.0))
     dodge.step_playing(0.25)
     assert dodge.phase is Phase.PLAYING
-    assert dodge.blocks[0].top() > dodge.player_rect().bottom()
+    assert dodge.blocks[0].value.top() > dodge.player_rect().bottom()
 
 
 def test_conflicting_steering_nets_zero(dodge):
     dodge.actions.apply({Action.LEFT: 1.0, Action.RIGHT: 1.0})
-    x = dodge.player_x
+    x = dodge.player_x.value
     for _ in range(64):
         dodge.step(dodge.dt)
-    assert dodge.player_x == x
+    assert dodge.player_x.value == x
 
 
 @pytest.mark.parametrize("direction", [Action.LEFT, Action.RIGHT])
@@ -144,21 +144,22 @@ def test_player_never_leaves_the_field(dodge, direction, dt):
     dodge.actions.apply({direction: 1.0})
     dodge.step_playing(dt)
     half = PLAYER_WIDTH / 2
-    assert half <= dodge.player_x <= dodge.field.width - half
+    assert half <= dodge.player_x.value <= dodge.field.width - half
 
 
 @pytest.mark.parametrize("poison", [math.nan, math.inf, -math.inf])
 def test_player_recovers_from_a_poisoned_position(dodge, poison):
     """clamp() snaps a NaN/inf position back into the field instead of spreading it."""
-    dodge.player_x = poison
+    dodge.player_x.jump(poison)
     dodge.step_playing(1 / 64)
-    assert math.isfinite(dodge.player_x)
+    assert math.isfinite(dodge.player_x.value)
 
 
 def test_each_dodged_block_scores_exactly_once(dodge):
     far_left = QRectF(0, dodge.field.height - 1, BLOCK_SIZE, BLOCK_SIZE)
-    dodge.player_x = dodge.field.width - PLAYER_WIDTH  # out of the way
-    dodge.blocks = [QRectF(far_left), QRectF(far_left)]
+    dodge.player_x.jump(dodge.field.width - PLAYER_WIDTH)  # out of the way
+    dodge.drop_block(QRectF(far_left))
+    dodge.drop_block(QRectF(far_left))
     for _ in range(64):
         dodge.step_playing(1 / 64)
     assert dodge.score == 2 and dodge.blocks == []
@@ -166,10 +167,9 @@ def test_each_dodged_block_scores_exactly_once(dodge):
 
 def test_many_blocks_in_one_step_mutate_safely(dodge):
     """Culling from the list mid-iteration must not skip or double-count a block."""
-    dodge.player_x = dodge.field.width - PLAYER_WIDTH / 2
-    dodge.blocks = [
-        QRectF(0, dodge.field.height - 0.5 - i % 3, 1, 1) for i in range(5000)
-    ]
+    dodge.player_x.jump(dodge.field.width - PLAYER_WIDTH / 2)
+    for i in range(5000):
+        dodge.drop_block(QRectF(0, dodge.field.height - 0.5 - i % 3, 1, 1))
     dodge.step_playing(1 / 64)
     assert dodge.score + len(dodge.blocks) == 5000
 
@@ -296,3 +296,15 @@ def test_degenerate_polygons_are_culled():
 def test_pose_lerp_hits_endpoints(amount):
     a, b = Pose(0, 0, 0, 0), Pose(10, -5, 3, 270)
     assert a.lerp(b, amount) == (a if amount == 0.0 else b)
+
+
+def test_the_paddle_draws_between_its_last_two_steps(dodge):
+    dodge.actions.apply({Action.RIGHT: 1.0})
+    before = dodge.player_x.value
+    dodge.step(dodge.dt)
+    after = dodge.player_x.value
+    assert after > before
+    assert (dodge.player_x.at(0.0), dodge.player_x.at(1.0)) == (before, after)
+    dodge.actions.apply({})
+    dodge.step(dodge.dt)
+    assert dodge.player_x.at(0.0) == dodge.player_x.at(1.0) == after

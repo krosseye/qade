@@ -5,6 +5,7 @@ import logging
 import random
 from dataclasses import replace
 from enum import Enum, auto
+from typing import Any
 
 from PySide6.QtCore import Qt
 from PySide6.QtTextToSpeech import QVoice
@@ -21,6 +22,7 @@ from qade_engine.core.state_machine import (
     TransitionStyle,
 )
 from qade_engine.graphics.particles import ParticleSystem
+from qade_engine.graphics.smoothing import Smoothed
 from qade_engine.graphics.starfield import StarField
 from qade_engine.graphics.theme import current_theme
 from qade_engine.graphics.transitions import draw_transition
@@ -366,6 +368,18 @@ class ArcadeGame:
             True if it starts a change of phase.
         """
         return self.flow.send(event)
+
+    def smoothed(self, value: Any) -> Smoothed:
+        """A value that draws smoothly between steps, whatever the display rate.
+
+        Args:
+            value: Where it starts.
+
+        Returns:
+            Read and ``set`` its ``value`` in steps; draw it at
+            ``at(frame.alpha)``.
+        """
+        return Smoothed(value, lambda: self.tick_count)
 
     def died(self) -> None:
         """Ends the current run."""
