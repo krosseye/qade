@@ -11,7 +11,6 @@ from PySide6.QtCore import QLoggingCategory
 from PySide6.QtWidgets import QApplication
 
 from qade_engine.diagnostics import log_system_info
-from qade_engine.graphics.theme import apply_accent
 from qade_engine.persistence import SAVE_ROOT
 
 from .app import GameDefinition, HostSettings
@@ -114,7 +113,6 @@ def run(definition: GameDefinition, home: GameDefinition | None = None) -> None:
     if not settings.software_renderer:
         use_opengl_format()
     application = QApplication(sys.argv)
-    apply_accent()
     log_system_info(use_hardware=not settings.software_renderer)
     refresh_rate = application.primaryScreen().refreshRate() or 60.0
     window = HostWindow(definition, settings, refresh_rate, home=home)

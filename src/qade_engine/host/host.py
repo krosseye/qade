@@ -7,10 +7,11 @@ from functools import partial
 from time import perf_counter
 
 from PySide6.QtCore import QCoreApplication, QObject, Qt, QTimer, Signal
-from PySide6.QtGui import QGuiApplication, QPainter
+from PySide6.QtGui import QColor, QGuiApplication, QPainter
 
 from qade_engine.core.timestep import FixedTimestep
 from qade_engine.graphics.palette import BLACK
+from qade_engine.graphics.theme import apply_accent
 from qade_engine.graphics.viewport import Viewport
 from qade_engine.input.actions import UIAction
 from qade_engine.input.manager import InputManager
@@ -22,6 +23,12 @@ _log = logging.getLogger(__name__)
 
 MAX_FRAME_DT = 0.25
 TICK_INTERVAL_MS = 15
+
+
+def _use_accent(info: GameInfo | None) -> None:
+    """Tints the theme to an app's accent, or the system's if it has none."""
+    accent = QColor(info.accent if info else "")
+    apply_accent(accent if accent.isValid() else None)
 
 
 class Host(QObject):
@@ -102,7 +109,8 @@ class Host(QObject):
         """Replaces the running app, if any, with a new one.
 
         The new app is built first, so one that fails to build leaves the
-        running app as it was.
+        running app as it was. The theme takes the new app's accent before it
+        is built, so everything it draws, the HUD included, matches its art.
 
         Args:
             definition: The app to build and start.
@@ -117,9 +125,14 @@ class Host(QObject):
             exit=partial(self._later, self.exit_app),
             launch=lambda definition: self._later(partial(self.switch_to, definition)),
         )
-        app = definition.create(services)
-        if UIAction.QUIT not in app.input_map:
-            raise ValueError(f"{definition.info.id}: input map has no quit action")
+        _use_accent(definition.info)
+        try:
+            app = definition.create(services)
+            if UIAction.QUIT not in app.input_map:
+                raise ValueError(f"{definition.info.id}: input map has no quit action")
+        except BaseException:
+            _use_accent(self.info)
+            raise
         self._stop_app()
         self._services = services
         self.input.set_input_map(app.input_map)

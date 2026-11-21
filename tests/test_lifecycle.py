@@ -9,13 +9,15 @@ import weakref
 
 import pytest
 from PySide6.QtCore import QCoreApplication, QTimer
+from PySide6.QtGui import QColor
 from support import FakeApp, ProbeGame, define, run_for, to_playing
 
 from qade_engine import Event, HighScoreStore, Phase
+from qade_engine.graphics import current_theme
 from qade_engine.graphics.palette import WHITE
 from qade_engine.graphics.particles import ParticleEffect, ParticleSystem, Shape
 from qade_engine.graphics.starfield import StarField
-from qade_engine.host.app import Services
+from qade_engine.host.app import GameDefinition, GameInfo, Services
 from qade_engine.input import InputMap
 
 DOT = ParticleEffect(10, (0.5, 1.0), (WHITE, WHITE), speed=(10, 100))
@@ -483,3 +485,27 @@ def test_starfield_wraps_inside_the_canvas_for_any_finite_velocity(velocity):
         field.scroll(*velocity, 1 / 64)
     # <=, not <: Python's float modulo can round a tiny negative up to the modulus.
     assert all(0 <= s.x <= 800 and 0 <= s.y <= 600 for s in field.stars)
+
+
+# --- Host: theme ----------------------------------------------------------------
+
+
+def test_the_theme_takes_each_apps_accent_and_keeps_it_if_the_next_fails(host):
+    def tinted(accent: str, create=FakeApp) -> GameDefinition:
+        return GameDefinition(
+            GameInfo(f"tint-{accent[1:]}", "T", "qade_engine", accent=accent), create
+        )  # type: ignore[arg-type]
+
+    host.switch_to(tinted("#80de54"))
+    green = current_theme().accent.hsvHue()
+    host.switch_to(tinted("#9678ff"))
+    purple = current_theme().accent.hsvHue()
+    assert abs(green - QColor("#80de54").hsvHue()) <= 2
+    assert abs(purple - QColor("#9678ff").hsvHue()) <= 2
+
+    def broken(services):
+        raise RuntimeError("no")
+
+    with pytest.raises(RuntimeError):
+        host.switch_to(tinted("#ff0000", broken))
+    assert current_theme().accent.hsvHue() == purple

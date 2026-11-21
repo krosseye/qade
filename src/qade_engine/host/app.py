@@ -22,7 +22,7 @@ class GameInfo:
         title: Display name.
         package: Python package holding the game's ``resources`` folder.
         description: One line for a launcher.
-        accent: A color name such as ``"#ffa500"`` for launcher art. Empty
+        accent: A color name such as ``"#ffa500"`` for launcher art and HUD. Empty
             uses the theme's.
 
     Raises:
